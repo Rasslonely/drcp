@@ -15,7 +15,7 @@ We take security vulnerabilities seriously. If you discover a security issue, pl
 
 Instead, please report vulnerabilities via one of these channels:
 
-1. **Email:** security@drcp-protocol.org *(replace with your actual email)*
+1. **Email:** rasstiens@gmail.com
 2. **GitHub Security Advisory:** [Create a private advisory](../../security/advisories/new)
 
 ### What to Include
@@ -108,7 +108,7 @@ We reward security researchers who help keep DRCP safe.
 1. Report verified by team
 2. Severity agreed upon
 3. Fix developed and deployed
-4. Reward paid via USDC on Polygon
+4. Reward paid via USDC on Lisk Sepolia
 
 ---
 
@@ -136,10 +136,10 @@ Researchers who responsibly disclose valid vulnerabilities will be:
 
 ## Contact
 
-- **Security Email:** security@drcp-protocol.org
-- **Discord:** [DRCP Discord](https://discord.gg/drcp) *(#security channel)*
+- **Security Email:** rasstiens@gmail.com
+- **GitHub:** [Create Security Advisory](../../security/advisories/new)
 - **Response Time:** 48 hours
 
 ---
 
-*Last Updated: 2026-01-06*
+*Last Updated: 2026-01-09*
