@@ -1,0 +1,12 @@
+export const DEPLOYMENTS = {
+    amoy: {
+        RescueToken: "0xa5247E2e494186EAe1Df1e2e747C3c920D8AC7a9",
+        DRCPTimelock: "0x29Ee8D37C05224485b91349C449620318438352C",
+        DRCPGovernor: "0xF3c4a5748cF56A01F2147C2A7e5c5b52e176F13f",
+        ImpactNFT: "0x3A34430EFD3F45Fe808f28338652cEFD801a71f6",
+        MOCK_USDC_ADDRESS: "0xCAa80AbfeC9871D09911bF488e9Ed230d00093e2", // SimpleUSDC via Remix
+        VAULT_ADDRESS: "0xb0EF777A7CD41DC84499Baf51dE16996489d65Dd", // ParametricVault via Remix
+    }
+} as const;
+
+export const CHAIN_ID = 80002;

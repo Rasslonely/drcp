@@ -1,0 +1,22 @@
+{
+  "name": "drcp-subgraph",
+  "version": "0.1.0",
+  "description": "Subgraph for DRCP Protocol - Multi-chain support",
+  "scripts": {
+    "codegen": "graph codegen",
+    "build": "graph build",
+    "build:lisk": "graph codegen subgraph-lisk.yaml && graph build subgraph-lisk.yaml",
+    "auth": "graph auth --studio",
+    "deploy:studio": "graph deploy --studio drcp-amoy",
+    "deploy:goldsky-lisk": "goldsky subgraph deploy drcp-lisk/v1 --path ./build",
+    "create-local": "graph create --node http://localhost:8020/ drcp-subgraph",
+    "remove-local": "graph remove --node http://localhost:8020/ drcp-subgraph",
+    "deploy-local": "graph deploy --node http://localhost:8020/ --ipfs http://localhost:5001 drcp-subgraph"
+  },
+  "dependencies": {
+    "@graphprotocol/graph-cli": "^0.73.0",
+    "@graphprotocol/graph-ts": "^0.34.0"
+  }
+}
+
+

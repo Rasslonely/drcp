@@ -1,0 +1,86 @@
+specVersion: 1.0.0
+indexerHints:
+  prune: auto
+schema:
+  file: ./schema.graphql
+dataSources:
+  - kind: ethereum
+    name: ParametricVault
+    network: polygon-amoy
+    source:
+      address: "0x5ce8cCF75A8Ff90Ba1e73Ba9cBE81dEab6A5dFfB"
+      abi: ParametricVault
+      startBlock: 31600000  # Approximate deployment block
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      entities:
+        - Deposit
+        - Withdrawal
+        - Task
+        - TaskVerified
+        - Emergency
+        - VaultStats
+        - DonorStats
+        - VolunteerStats
+        - Campaign
+        - CampaignDeposit
+        - FinancialActivity
+      abis:
+        - name: ParametricVault
+          file: ./abis/ParametricVault.json
+      eventHandlers:
+        - event: Deposited(indexed address,uint256)
+          handler: handleDeposited
+        - event: Withdrawn(indexed address,uint256)
+          handler: handleWithdrawn
+        - event: TaskCreated(indexed uint256,string,uint256)
+          handler: handleTaskCreated
+        - event: TaskClaimed(indexed uint256,indexed address)
+          handler: handleTaskClaimed
+        - event: TaskProofSubmitted(indexed uint256,bytes32)
+          handler: handleTaskProofSubmitted
+        - event: TaskVerified(indexed uint256,indexed address,uint256)
+          handler: handleTaskVerified
+        - event: TaskCancelled(indexed uint256)
+          handler: handleTaskCancelled
+        - event: EmergencyDeclared(indexed uint256,bytes32,uint256)
+          handler: handleEmergencyDeclared
+        - event: EmergencySettled(indexed uint256,uint256)
+          handler: handleEmergencySettled
+        # Campaign events
+        - event: CampaignCreated(indexed uint256,string,uint256,bytes32)
+          handler: handleCampaignCreated
+        - event: CampaignDeposit(indexed uint256,indexed address,uint256)
+          handler: handleCampaignDeposit
+        - event: CampaignClosed(indexed uint256,uint256,uint8)
+          handler: handleCampaignClosed
+      file: ./src/parametric-vault.ts
+
+  # RescueToken - ERC20Votes token for governance delegation
+  - kind: ethereum
+    name: RescueToken
+    network: polygon-amoy
+    source:
+      address: "0xa5247E2e494186EAe1Df1e2e747C3c920D8AC7a9"
+      abi: RescueToken
+      startBlock: 31600000  # Same deployment block as vault
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      entities:
+        - Delegate
+        - Delegation
+        - DelegateStats
+      abis:
+        - name: RescueToken
+          file: ./abis/RescueToken.json
+      eventHandlers:
+        - event: DelegateChanged(indexed address,indexed address,indexed address)
+          handler: handleDelegateChanged
+        - event: DelegateVotesChanged(indexed address,uint256,uint256)
+          handler: handleDelegateVotesChanged
+      file: ./src/rescue-token.ts
+

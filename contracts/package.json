@@ -1,0 +1,26 @@
+{
+  "name": "drcp-contracts",
+  "version": "1.0.0",
+  "description": "Disaster Response Coordination Protocol - Smart Contracts",
+  "scripts": {
+    "compile": "hardhat compile",
+    "test": "hardhat test",
+    "coverage": "hardhat coverage",
+    "deploy:amoy": "hardhat run scripts/deploy.ts --network amoy",
+    "verify": "hardhat verify --network amoy"
+  },
+  "devDependencies": {
+    "@chainlink/contracts": "^1.5.0",
+    "@nomicfoundation/hardhat-toolbox": "^4.0.0",
+    "@openzeppelin/contracts": "^5.0.1",
+    "dotenv": "^16.3.1",
+    "hardhat": "^2.19.4"
+  },
+  "keywords": [
+    "disaster",
+    "dao",
+    "blockchain",
+    "polygon"
+  ],
+  "license": "MIT"
+}

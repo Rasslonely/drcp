@@ -1,0 +1,173 @@
+# DRCP Subgraph Entities
+
+# Deposit - tracks every donation to the vault
+type Deposit @entity(immutable: true) {
+  id: Bytes!             # Transaction hash
+  donor: Bytes!          # Donor address
+  amount: BigInt!        # Amount in USDC (6 decimals)
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+# Withdrawal - tracks donor withdrawals
+type Withdrawal @entity(immutable: true) {
+  id: Bytes!
+  donor: Bytes!
+  amount: BigInt!
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+# Task - tracks volunteer tasks lifecycle (mutable - status changes)
+type Task @entity(immutable: false) {
+  id: ID!                # Task ID from contract
+  taskId: BigInt!
+  description: String!
+  reward: BigInt!
+  volunteer: Bytes       # Set when claimed
+  status: String!        # OPEN, CLAIMED, PROOF_SUBMITTED, VERIFIED, PAID, CANCELLED
+  geoHash: Bytes
+  createdAt: BigInt!
+  claimedAt: BigInt
+  proofHash: Bytes
+  proofSubmittedAt: BigInt
+  verifiedAt: BigInt
+  transactionHash: Bytes!
+}
+
+# TaskVerified - immutable record of completed tasks
+type TaskVerified @entity(immutable: true) {
+  id: Bytes!
+  taskId: BigInt!
+  volunteer: Bytes!
+  reward: BigInt!
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+# Emergency - tracks disaster declarations (mutable - can be settled)
+type Emergency @entity(immutable: false) {
+  id: ID!
+  emergencyId: BigInt!
+  disasterType: Bytes!
+  fundsAllocated: BigInt!
+  totalDistributed: BigInt!
+  isActive: Boolean!
+  startedAt: BigInt!
+  settledAt: BigInt
+  transactionHash: Bytes!
+}
+
+# VaultStats - aggregate statistics (singleton, mutable)
+type VaultStats @entity(immutable: false) {
+  id: ID!                # Always "global"
+  totalDeposits: BigInt!
+  totalWithdrawals: BigInt!
+  totalTaskPayouts: BigInt!
+  depositCount: BigInt!
+  withdrawalCount: BigInt!
+  taskCount: BigInt!
+  completedTaskCount: BigInt!
+  emergencyCount: BigInt!
+  # Campaign stats
+  campaignCount: BigInt!
+  activeCampaignCount: BigInt!
+  totalCampaignRaised: BigInt!
+}
+
+# DonorStats - per-donor statistics (mutable)
+type DonorStats @entity(immutable: false) {
+  id: Bytes!             # Donor address
+  totalDonated: BigInt!
+  totalWithdrawn: BigInt!
+  depositCount: BigInt!
+}
+
+# VolunteerStats - per-volunteer statistics (mutable)
+type VolunteerStats @entity(immutable: false) {
+  id: Bytes!             # Volunteer address
+  totalEarned: BigInt!
+  tasksCompleted: BigInt!
+}
+
+# Campaign - tracks disaster relief campaigns (mutable - status changes)
+type Campaign @entity(immutable: false) {
+  id: ID!                # Campaign ID from contract
+  campaignId: BigInt!
+  name: String!
+  description: String!
+  targetAmount: BigInt!
+  raisedAmount: BigInt!
+  deadline: BigInt!
+  geoHash: Bytes
+  status: String!        # ACTIVE, CLOSED, EXPIRED
+  createdAt: BigInt!
+  closedAt: BigInt
+  depositCount: BigInt!
+  transactionHash: Bytes!
+  # Relation to deposits
+  deposits: [CampaignDeposit!]! @derivedFrom(field: "campaign")
+}
+
+# CampaignDeposit - immutable record of campaign donations
+type CampaignDeposit @entity(immutable: true) {
+  id: Bytes!             # Transaction hash
+  campaign: Campaign!
+  donor: Bytes!
+  amount: BigInt!
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+# FinancialActivity - tracks all value movements (unified ledger)
+type FinancialActivity @entity(immutable: true) {
+  id: Bytes!             # Transaction hash + type index
+  type: String!          # DEPOSIT, CAMPAIGN_DEPOSIT, WITHDRAWAL, PAYOUT
+  amount: BigInt!
+  donor: Bytes           # Optional (for deposits/withdrawals)
+  volunteer: Bytes       # Optional (for payouts)
+  campaign: Campaign     # Optional (for campaign-specific activity)
+  taskId: BigInt        # Optional (for payouts)
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+# ============ GOVERNANCE ENTITIES (RescueToken) ============
+
+# Delegate - tracks addresses with delegated voting power
+type Delegate @entity(immutable: false) {
+  id: Bytes!             # Delegate address (lowercase)
+  address: Bytes!        # Delegate address
+  votingPower: BigInt!   # Current voting power (from getVotes)
+  delegatorsCount: Int!  # Number of addresses delegating to this delegate
+  # Derived fields
+  delegators: [Delegation!]! @derivedFrom(field: "delegate")
+  # Metadata
+  firstDelegatedAt: BigInt!
+  lastUpdatedAt: BigInt!
+}
+
+# Delegation - tracks who is delegating to whom
+type Delegation @entity(immutable: false) {
+  id: Bytes!             # Delegator address
+  delegator: Bytes!      # Address that delegated
+  delegate: Delegate!    # Who they delegated to
+  balance: BigInt!       # Token balance of delegator
+  delegatedAt: BigInt!
+  lastUpdatedAt: BigInt!
+}
+
+# DelegateStats - aggregate statistics (singleton)
+type DelegateStats @entity(immutable: false) {
+  id: ID!                # Always "global"
+  totalDelegates: Int!   # Number of unique delegates with voting power
+  totalDelegators: Int!  # Number of addresses that have delegated
+  totalVotingPower: BigInt! # Sum of all voting power
+  totalSupply: BigInt!   # Total token supply
+  delegationRate: BigDecimal! # Percentage of supply delegated
+}
+
