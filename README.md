@@ -45,20 +45,20 @@ Disaster relief in Southeast Asia faces a **72-hour latency gap**. While victims
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                        Frontend (Next.js)                    │
+│                        Frontend (Next.js)                   │
 │  Dashboard │ Donate │ Governance │ Transparency │ Volunteer │
 └─────────────────────────┬───────────────────────────────────┘
                           │
 ┌─────────────────────────▼───────────────────────────────────┐
-│                    The Graph (Indexer)                       │
-│         Real-time queries for deposits, votes, tasks         │
+│                    The Graph (Indexer)                      │
+│         Real-time queries for deposits, votes, tasks        │
 └─────────────────────────┬───────────────────────────────────┘
                           │
 ┌─────────────────────────▼───────────────────────────────────┐
-│                   Lisk Sepolia (Blockchain)                  │
+│                   Lisk Sepolia (Blockchain)                 │
 │  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐       │
-│  │ParametricVault│  │ DRCPGovernor │  │  ImpactNFT   │       │
-│  │  (Funds)      │  │   (DAO)      │  │ (Reputation) │       │
+│  │ParametricVault│  │ DRCPGovernor │  │  ImpactNFT   │      │
+│  │  (Funds)      │  │   (DAO)      │  │ (Reputation) │      │
 │  └──────────────┘  └──────────────┘  └──────────────┘       │
 └─────────────────────────────────────────────────────────────┘
 ```
