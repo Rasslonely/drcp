@@ -1,0 +1,21 @@
+# Hardhat / Contracts .gitignore
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Hardhat
+cache/
+artifacts/
+typechain-types/
+
+# Dependencies
+node_modules/
+
+# Coverage
+coverage/
+coverage.json
+
+# Build
+dist/
