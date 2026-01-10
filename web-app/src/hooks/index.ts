@@ -118,3 +118,18 @@ export {
   dismissToast,
   promiseToast,
 } from "./useToast";
+
+// Phase 13: Task Management
+export {
+  useTask,
+  useAllTasks,
+  useMyTasks,
+  useCreateTask,
+  useVerifyAndPay,
+  useCancelTask,
+  useClaimTask,
+  useSubmitProof,
+  TaskStatus,
+  TASK_STATUS_CONFIG,
+} from "./useTasks";
+export type { Task, TaskDisplay } from "./useTasks";

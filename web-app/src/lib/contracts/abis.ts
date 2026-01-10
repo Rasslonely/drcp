@@ -31,10 +31,20 @@ export const ABIS = {
     // Campaign admin functions (DAO_ROLE)
     "function createCampaign(string name, string description, uint256 targetAmount, uint256 deadline, bytes32 geoHash) external returns (uint256)",
     "function closeCampaign(uint256 campaignId) external",
+    // Task admin functions (DAO_ROLE)
+    "function createTask(string description, uint256 reward, bytes32 geoHash) external returns (uint256)",
+    "function verifyAndPay(uint256 taskId) external",
+    "function cancelTask(uint256 taskId) external",
+    // Task volunteer functions (public)
+    "function claimTask(uint256 taskId) external",
+    "function submitProof(uint256 taskId, bytes32 proofHash) external",
     // Events
     "event Deposited(address indexed donor, uint256 amount)",
     "event TaskCreated(uint256 indexed taskId, string description, uint256 reward)",
+    "event TaskClaimed(uint256 indexed taskId, address indexed volunteer)",
+    "event TaskProofSubmitted(uint256 indexed taskId, bytes32 proofHash)",
     "event TaskVerified(uint256 indexed taskId, address indexed volunteer, uint256 reward)",
+    "event TaskCancelled(uint256 indexed taskId)",
     "event EmergencyDeclared(uint256 indexed emergencyId, bytes32 disasterType, uint256 fundsAllocated)",
     // Campaign events
     "event CampaignCreated(uint256 indexed campaignId, string name, uint256 targetAmount, bytes32 geoHash)",

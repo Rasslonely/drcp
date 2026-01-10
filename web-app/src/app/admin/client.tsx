@@ -184,6 +184,19 @@ export function AdminDeployClient({ mockUSDCAbi, mockUSDCBytecode, vaultAbi, vau
             </CardContent>
           </Card>
         </a>
+        <a href="/admin/tasks" className="flex-1">
+          <Card className="bg-purple-500/10 border-purple-500/30 hover:bg-purple-500/20 transition-colors cursor-pointer">
+            <CardContent className="flex items-center gap-4 p-4">
+              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-purple-500/20">
+                <Settings className="h-6 w-6 text-purple-400" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-white">Task Management</h3>
+                <p className="text-sm text-gray-400">Create and verify volunteer tasks</p>
+              </div>
+            </CardContent>
+          </Card>
+        </a>
       </div>
 
       <div className="grid gap-6 mt-6">

@@ -3,7 +3,8 @@
 import { motion } from "framer-motion";
 import { ExternalLink, ShieldCheck } from "lucide-react";
 import { useState } from "react";
-import { getTxExplorerUrl, getExplorerUrl } from "@/lib/chain-utils";
+import { getTxExplorerUrl, getAddressExplorerUrl } from "@/lib/chain-utils";
+import { VAULT_ADDRESS } from "@/lib/contracts/deployments";
 
 interface VerificationBadgeProps {
   /** Transaction hash for linking to explorer */
@@ -31,7 +32,7 @@ export function VerificationBadge({
   // Explorer link for the transaction
   const explorerUrl = txHash
     ? getTxExplorerUrl(txHash)
-    : getExplorerUrl();
+    : getAddressExplorerUrl(VAULT_ADDRESS);
 
   // Compact variant - just the icon
   if (variant === "compact") {

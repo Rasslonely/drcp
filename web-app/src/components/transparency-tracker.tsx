@@ -5,7 +5,8 @@ import { Eye, ExternalLink, Loader2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { SkeletonValue } from "@/components/ui/skeleton";
 import { useVaultStats, useTaskCount } from "@/hooks";
-import { getExplorerUrl } from "@/lib/chain-utils";
+import { getAddressExplorerUrl } from "@/lib/chain-utils";
+import { VAULT_ADDRESS } from "@/lib/contracts/deployments";
 
 export function TransparencyTracker() {
   const { 
@@ -53,7 +54,7 @@ export function TransparencyTracker() {
             {isLoading && <Loader2 className="ml-2 h-4 w-4 animate-spin text-gray-500" />}
           </span>
           <a
-            href={getExplorerUrl()}
+            href={getAddressExplorerUrl(VAULT_ADDRESS)}
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center text-sm text-gray-400 hover:text-white transition-colors"

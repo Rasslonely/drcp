@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
-import { ShieldCheck, Menu, X, LayoutDashboard, Eye, Vote, Award, AlertTriangle, Coffee } from "lucide-react";
+import { ShieldCheck, Menu, X, LayoutDashboard, Eye, Vote, Award, AlertTriangle, Coffee, Briefcase } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
@@ -12,6 +12,7 @@ const navLinks = [
   { href: "/emergencies", label: "Emergencies", icon: AlertTriangle },
   { href: "/transparency", label: "Transparency", icon: Eye },
   { href: "/governance", label: "Governance", icon: Vote },
+  { href: "/tasks", label: "Tasks", icon: Briefcase },
   { href: "/reputation", label: "Reputation", icon: Award },
   { href: "/support", label: "Support", icon: Coffee, highlight: true },
 ];

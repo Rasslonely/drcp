@@ -15,7 +15,8 @@ import { ActivityItem, type Transaction } from "./activity-item";
 import { ActivityGroup, groupTransactionsByTime } from "./activity-group";
 import { useAllTransactions } from "@/hooks";
 import { cn } from "@/lib/utils";
-import { getExplorerUrl, getExplorerName } from "@/lib/chain-utils";
+import { getAddressExplorerUrl, getExplorerName } from "@/lib/chain-utils";
+import { VAULT_ADDRESS } from "@/lib/contracts/deployments";
 
 // =============================================================================
 // CONSTANTS
@@ -227,7 +228,7 @@ export function ActivityFeed({
             </AnimatePresence>
           </span>
           <a
-            href={getExplorerUrl()}
+            href={getAddressExplorerUrl(VAULT_ADDRESS)}
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center text-sm text-gray-400 hover:text-white transition-colors"

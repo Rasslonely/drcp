@@ -3,7 +3,7 @@
 import { memo } from "react";
 import { motion } from "framer-motion";
 import { useAccount } from "wagmi";
-import { Wallet, AlertTriangle, ArrowRight, MapPin, Clock } from "lucide-react";
+import { Wallet, AlertTriangle, ArrowRight, MapPin, Clock, Briefcase, Hand, CheckCircle2 } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -16,7 +16,7 @@ import {
   IndonesiaMap,
   AutoCampaignBanner,
 } from "@/components/dashboard";
-import { useDisasterData } from "@/hooks";
+import { useDisasterData, useAllTasks, useMyTasks } from "@/hooks";
 import {
   DisasterEvent,
   getDisasterEmoji,
@@ -104,6 +104,103 @@ function EmergenciesWidget() {
         ) : (
           <div className="text-center py-8 text-gray-500">
             No active emergencies
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+// =============================================================================
+// TASKS WIDGET
+// =============================================================================
+
+function TasksWidget({ address }: { address?: string }) {
+  const { openTasks, isLoading } = useAllTasks();
+  const { myTasks, claimedTasks } = useMyTasks(address as `0x${string}` | undefined);
+
+  const previewTasks = openTasks.slice(0, 3);
+  const hasActiveTasks = claimedTasks.length > 0;
+
+  return (
+    <Card variant="glass">
+      <CardContent className="p-4">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
+            <Briefcase className="h-5 w-5 text-emerald-400" />
+            <h3 className="font-semibold text-white">Volunteer Tasks</h3>
+            {openTasks.length > 0 && (
+              <span className="text-xs px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400">
+                {openTasks.length} open
+              </span>
+            )}
+          </div>
+          <Link href="/tasks">
+            <Button variant="ghost" size="sm" className="text-gray-400 hover:text-white">
+              View All
+              <ArrowRight className="ml-1 h-3 w-3" />
+            </Button>
+          </Link>
+        </div>
+
+        {/* Active Tasks Banner */}
+        {hasActiveTasks && (
+          <div className="mb-4 p-3 rounded-lg bg-blue-500/10 border border-blue-500/20">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Hand className="h-4 w-4 text-blue-400" />
+                <span className="text-sm text-blue-300">
+                  You have {claimedTasks.length} active task{claimedTasks.length > 1 ? "s" : ""}
+                </span>
+              </div>
+              <Link href="/tasks">
+                <Button variant="ghost" size="sm" className="text-blue-400 hover:text-blue-300 text-xs">
+                  Continue
+                  <ArrowRight className="ml-1 h-3 w-3" />
+                </Button>
+              </Link>
+            </div>
+          </div>
+        )}
+
+        {isLoading ? (
+          <div className="space-y-2">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="h-14 rounded-lg bg-white/5 animate-pulse" />
+            ))}
+          </div>
+        ) : previewTasks.length > 0 ? (
+          <div className="space-y-2">
+            {previewTasks.map((task) => (
+              <div
+                key={Number(task.id)}
+                className="flex items-center justify-between p-3 rounded-lg bg-white/5 border border-white/10 hover:border-white/20 transition-colors"
+              >
+                <div className="flex items-center gap-3 min-w-0">
+                  <span className="text-lg">{task.statusIcon}</span>
+                  <div className="min-w-0">
+                    <div className="font-medium text-white text-sm truncate max-w-[180px]">
+                      {task.description}
+                    </div>
+                    <div className="flex items-center gap-1 text-xs text-gray-500">
+                      <Clock className="h-3 w-3" />
+                      <span>{task.createdAtDate.toLocaleDateString()}</span>
+                    </div>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 shrink-0">
+                  <span className="text-sm font-semibold text-green-400">
+                    {task.rewardFormatted}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-6 text-gray-500">
+            <CheckCircle2 className="h-8 w-8 mx-auto mb-2 text-gray-600" />
+            <p className="text-sm">No open tasks available</p>
+            <p className="text-xs text-gray-600">Check back later for opportunities</p>
           </div>
         )}
       </CardContent>
@@ -255,6 +352,15 @@ export default function DashboardPage() {
         transition={{ delay: 0.5 }}
       >
         <EmergenciesWidget />
+      </motion.section>
+
+      {/* Volunteer Tasks Widget */}
+      <motion.section
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.55 }}
+      >
+        <TasksWidget address={address} />
       </motion.section>
     </div>
   );
