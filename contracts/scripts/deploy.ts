@@ -102,13 +102,22 @@ async function main() {
   const mockUsdcAddress = await mockUsdc.getAddress();
   console.log("   ✅ MockUSDC deployed to:", mockUsdcAddress);
 
-  // ============ Deploy ParametricVault ============
+  // ============ Deploy ProjectTreasury ============
+  console.log("\n5.5️⃣ Deploying ProjectTreasury...");
+  const TreasuryFactory = await ethers.getContractFactory("ProjectTreasury");
+  const treasury = await TreasuryFactory.deploy(mockUsdcAddress, deployer.address);
+  await treasury.waitForDeployment();
+  const treasuryAddress = await treasury.getAddress();
+  console.log("   ✅ ProjectTreasury deployed to:", treasuryAddress);
+
+  // ============ Deploy ParametricVault (with treasury) ============
   console.log("\n6️⃣ Deploying ParametricVault...");
   const VaultFactory = await ethers.getContractFactory("ParametricVault");
-  const vault = await VaultFactory.deploy(mockUsdcAddress, deployer.address);
+  const vault = await VaultFactory.deploy(mockUsdcAddress, deployer.address, treasuryAddress);
   await vault.waitForDeployment();
   const vaultAddress = await vault.getAddress();
   console.log("   ✅ ParametricVault deployed to:", vaultAddress);
+  console.log("   📌 Protocol Fee: 0.5% → Treasury:", treasuryAddress);
 
   // ============ Configure Vault Roles ============
   console.log("\n7️⃣ Configuring Vault roles...");

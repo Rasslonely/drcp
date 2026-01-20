@@ -16,6 +16,7 @@ const config: HardhatUserConfig = {
         enabled: true,
         runs: 200,
       },
+      evmVersion: "cancun", // Required for OpenZeppelin 5.x mcopy instruction
     },
   },
   paths: {
@@ -39,7 +40,6 @@ const config: HardhatUserConfig = {
       url: "https://rpc.sepolia-api.lisk.com",
       chainId: 4202,
       accounts: [PRIVATE_KEY],
-      gasPrice: 1000000000, // 1 gwei
     },
     // Lisk Mainnet (future)
     lisk: {

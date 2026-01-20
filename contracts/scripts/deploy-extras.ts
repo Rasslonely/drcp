@@ -23,7 +23,7 @@ const NETWORK_CONFIG: Record<string, { name: string; symbol: string }> = {
 // ============================================================================
 const EXISTING_DEPLOYMENTS: Record<string, { VAULT_ADDRESS: string; MOCK_USDC: string }> = {
   "lisk-sepolia": {
-    VAULT_ADDRESS: "0x95A3AC8Cd6A09CD057692f8ee16869734E02CB9E",
+    VAULT_ADDRESS: "0x4Dd3ec9705820Bf0635fb90b2ff1BC06e0b441a7",
     MOCK_USDC: "0xc8f823d7FbE14d950b188F961aaD53b88E9ddfB8",
   },
   amoy: {

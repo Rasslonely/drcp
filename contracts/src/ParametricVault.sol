@@ -134,6 +134,12 @@ contract ParametricVault is AccessControl, ReentrancyGuard, Pausable {
     mapping(uint256 => mapping(address => uint256)) public campaignDonorBalances;
     uint256 public activeCampaignCount;
 
+    // ============ Protocol Fee ============
+    address public treasury;
+    uint256 public protocolFeeBps = 50; // 0.5% = 50 basis points
+    uint256 public constant MAX_FEE_BPS = 500; // Max 5% cap for security
+    uint256 public totalFeesCollected;
+
     // ============ Events ============
     event Deposited(address indexed donor, uint256 amount);
     event Withdrawn(address indexed donor, uint256 amount);
@@ -153,6 +159,11 @@ contract ParametricVault is AccessControl, ReentrancyGuard, Pausable {
     event CampaignCreated(uint256 indexed campaignId, string name, uint256 targetAmount, bytes32 geoHash);
     event CampaignDeposit(uint256 indexed campaignId, address indexed donor, uint256 amount);
     event CampaignClosed(uint256 indexed campaignId, uint256 totalRaised, CampaignStatus reason);
+    
+    // Protocol fee events
+    event FeeCollected(address indexed donor, uint256 feeAmount, uint256 netAmount);
+    event ProtocolFeeUpdated(uint256 oldFee, uint256 newFee);
+    event TreasuryUpdated(address oldTreasury, address newTreasury);
 
     // ============ Errors ============
     error InvalidState(VaultState current, VaultState required);
@@ -172,6 +183,10 @@ contract ParametricVault is AccessControl, ReentrancyGuard, Pausable {
     
     // Security errors
     error TVLCapExceeded(uint256 current, uint256 attempted, uint256 max);
+    
+    // Protocol fee errors
+    error FeeExceedsMaximum(uint256 fee, uint256 max);
+    error InvalidTreasury();
 
     // ============ Constructor ============
     
@@ -179,9 +194,12 @@ contract ParametricVault is AccessControl, ReentrancyGuard, Pausable {
      * @notice Initializes the ParametricVault
      * @param _stablecoin Address of the accepted stablecoin (USDC/USDT)
      * @param _admin Initial admin address
+     * @param _treasury Address to receive protocol fees
      */
-    constructor(address _stablecoin, address _admin) {
+    constructor(address _stablecoin, address _admin, address _treasury) {
+        if (_treasury == address(0)) revert InvalidTreasury();
         stablecoin = IERC20(_stablecoin);
+        treasury = _treasury;
         currentState = VaultState.IDLE;
         
         _grantRole(DEFAULT_ADMIN_ROLE, _admin);
@@ -193,23 +211,36 @@ contract ParametricVault is AccessControl, ReentrancyGuard, Pausable {
 
     /**
      * @notice Deposits stablecoins into the vault
+     * @dev Deducts protocol fee and sends to treasury
      * @param amount Amount to deposit (in stablecoin decimals)
      */
     function deposit(uint256 amount) external nonReentrant whenNotPaused {
         if (amount == 0) revert ZeroAmount();
         
-        // TVL Cap Check (Phase 0 - Beta Safety)
+        // Calculate protocol fee (0.5% = 50 basis points)
+        uint256 feeAmount = (amount * protocolFeeBps) / 10000;
+        uint256 netAmount = amount - feeAmount;
+        
+        // TVL Cap Check on net amount (Phase 0 - Beta Safety)
         uint256 currentBalance = stablecoin.balanceOf(address(this));
-        if (currentBalance + amount > MAX_TVL) {
-            revert TVLCapExceeded(currentBalance, amount, MAX_TVL);
+        if (currentBalance + netAmount > MAX_TVL) {
+            revert TVLCapExceeded(currentBalance, netAmount, MAX_TVL);
         }
         
+        // Transfer full amount from donor
         stablecoin.safeTransferFrom(msg.sender, address(this), amount);
         
-        donorBalances[msg.sender] += amount;
-        totalDeposits += amount;
+        // Send fee to treasury
+        if (feeAmount > 0 && treasury != address(0)) {
+            stablecoin.safeTransfer(treasury, feeAmount);
+            totalFeesCollected += feeAmount;
+            emit FeeCollected(msg.sender, feeAmount, netAmount);
+        }
         
-        emit Deposited(msg.sender, amount);
+        donorBalances[msg.sender] += netAmount;
+        totalDeposits += netAmount;
+        
+        emit Deposited(msg.sender, netAmount);
     }
 
     /**
@@ -281,6 +312,7 @@ contract ParametricVault is AccessControl, ReentrancyGuard, Pausable {
 
     /**
      * @notice Deposits stablecoins to a specific campaign
+     * @dev Deducts protocol fee and sends to treasury
      * @param campaignId ID of the campaign to donate to
      * @param amount Amount to deposit (in stablecoin decimals)
      */
@@ -302,19 +334,31 @@ contract ParametricVault is AccessControl, ReentrancyGuard, Pausable {
             revert CampaignNotActive(campaignId);
         }
         
-        // TVL Cap Check (Phase 0 - Beta Safety)
+        // Calculate protocol fee (0.5% = 50 basis points)
+        uint256 feeAmount = (amount * protocolFeeBps) / 10000;
+        uint256 netAmount = amount - feeAmount;
+        
+        // TVL Cap Check on net amount (Phase 0 - Beta Safety)
         uint256 currentBalance = stablecoin.balanceOf(address(this));
-        if (currentBalance + amount > MAX_TVL) {
-            revert TVLCapExceeded(currentBalance, amount, MAX_TVL);
+        if (currentBalance + netAmount > MAX_TVL) {
+            revert TVLCapExceeded(currentBalance, netAmount, MAX_TVL);
         }
         
+        // Transfer full amount from donor
         stablecoin.safeTransferFrom(msg.sender, address(this), amount);
         
-        campaign.raisedAmount += amount;
-        campaignDonorBalances[campaignId][msg.sender] += amount;
-        totalDeposits += amount;
+        // Send fee to treasury
+        if (feeAmount > 0 && treasury != address(0)) {
+            stablecoin.safeTransfer(treasury, feeAmount);
+            totalFeesCollected += feeAmount;
+            emit FeeCollected(msg.sender, feeAmount, netAmount);
+        }
         
-        emit CampaignDeposit(campaignId, msg.sender, amount);
+        campaign.raisedAmount += netAmount;
+        campaignDonorBalances[campaignId][msg.sender] += netAmount;
+        totalDeposits += netAmount;
+        
+        emit CampaignDeposit(campaignId, msg.sender, netAmount);
     }
 
     /**
@@ -709,4 +753,46 @@ contract ParametricVault is AccessControl, ReentrancyGuard, Pausable {
         // Reserve some funds for pending tasks
         return balance > totalTaskPayouts ? balance - totalTaskPayouts : 0;
     }
+
+    // ============ Protocol Fee Management ============
+
+    /**
+     * @notice Updates the protocol fee (DAO governance)
+     * @dev Fee cannot exceed MAX_FEE_BPS (5%)
+     * @param _feeBps New fee in basis points (100 = 1%)
+     */
+    function setProtocolFee(uint256 _feeBps) external onlyRole(DAO_ROLE) {
+        if (_feeBps > MAX_FEE_BPS) revert FeeExceedsMaximum(_feeBps, MAX_FEE_BPS);
+        uint256 oldFee = protocolFeeBps;
+        protocolFeeBps = _feeBps;
+        emit ProtocolFeeUpdated(oldFee, _feeBps);
+    }
+
+    /**
+     * @notice Updates the treasury address (admin only)
+     * @param _treasury New treasury address
+     */
+    function setTreasury(address _treasury) external onlyRole(ADMIN_ROLE) {
+        if (_treasury == address(0)) revert InvalidTreasury();
+        address oldTreasury = treasury;
+        treasury = _treasury;
+        emit TreasuryUpdated(oldTreasury, _treasury);
+    }
+
+    /**
+     * @notice Returns protocol fee configuration
+     * @return feeBps Current fee in basis points
+     * @return maxFeeBps Maximum allowed fee
+     * @return treasuryAddr Treasury address
+     * @return totalCollected Total fees collected to date
+     */
+    function getProtocolFeeInfo() external view returns (
+        uint256 feeBps,
+        uint256 maxFeeBps,
+        address treasuryAddr,
+        uint256 totalCollected
+    ) {
+        return (protocolFeeBps, MAX_FEE_BPS, treasury, totalFeesCollected);
+    }
 }
+

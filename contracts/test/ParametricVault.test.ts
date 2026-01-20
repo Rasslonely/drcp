@@ -9,16 +9,20 @@ describe("ParametricVault", function () {
   const DEPOSIT_AMOUNT = ethers.parseUnits("500", 6); // 500 USDC (within 1000 USDC TVL cap)
 
   async function deployVaultFixture() {
-    const [admin, oracle, dao, donor, volunteer] = await ethers.getSigners();
+    const [admin, oracle, dao, donor, volunteer, treasury] = await ethers.getSigners();
 
     // Deploy MockUSDC
     const MockUSDCFactory = await ethers.getContractFactory("MockUSDC");
     const usdc = await MockUSDCFactory.deploy() as unknown as MockUSDC;
     await usdc.waitForDeployment();
 
-    // Deploy ParametricVault
+    // Deploy ParametricVault with treasury
     const VaultFactory = await ethers.getContractFactory("ParametricVault");
-    const vault = await VaultFactory.deploy(await usdc.getAddress(), admin.address) as unknown as ParametricVault;
+    const vault = await VaultFactory.deploy(
+      await usdc.getAddress(), 
+      admin.address,
+      treasury.address
+    ) as unknown as ParametricVault;
     await vault.waitForDeployment();
 
     // Grant roles
@@ -28,7 +32,7 @@ describe("ParametricVault", function () {
     // Mint USDC to donor
     await usdc.mint(donor.address, DEPOSIT_AMOUNT * 10n);
 
-    return { vault, usdc, admin, oracle, dao, donor, volunteer };
+    return { vault, usdc, admin, oracle, dao, donor, volunteer, treasury };
   }
 
   describe("Deployment", function () {
@@ -49,22 +53,33 @@ describe("ParametricVault", function () {
   });
 
   describe("Deposits", function () {
-    it("Should accept deposits", async function () {
-      const { vault, usdc, donor } = await loadFixture(deployVaultFixture);
+    it("Should accept deposits with protocol fee", async function () {
+      const { vault, usdc, donor, treasury } = await loadFixture(deployVaultFixture);
       await usdc.connect(donor).approve(await vault.getAddress(), DEPOSIT_AMOUNT);
       await vault.connect(donor).deposit(DEPOSIT_AMOUNT);
 
-      expect(await vault.donorBalances(donor.address)).to.equal(DEPOSIT_AMOUNT);
-      expect(await vault.totalDeposits()).to.equal(DEPOSIT_AMOUNT);
+      // 0.5% fee = 50 basis points
+      const feeAmount = DEPOSIT_AMOUNT * 50n / 10000n;
+      const netAmount = DEPOSIT_AMOUNT - feeAmount;
+
+      expect(await vault.donorBalances(donor.address)).to.equal(netAmount);
+      expect(await vault.totalDeposits()).to.equal(netAmount);
+      expect(await vault.totalFeesCollected()).to.equal(feeAmount);
+      expect(await usdc.balanceOf(treasury.address)).to.equal(feeAmount);
     });
 
-    it("Should emit Deposited event", async function () {
+    it("Should emit Deposited and FeeCollected events", async function () {
       const { vault, usdc, donor } = await loadFixture(deployVaultFixture);
       await usdc.connect(donor).approve(await vault.getAddress(), DEPOSIT_AMOUNT);
       
+      const feeAmount = DEPOSIT_AMOUNT * 50n / 10000n;
+      const netAmount = DEPOSIT_AMOUNT - feeAmount;
+      
       await expect(vault.connect(donor).deposit(DEPOSIT_AMOUNT))
         .to.emit(vault, "Deposited")
-        .withArgs(donor.address, DEPOSIT_AMOUNT);
+        .withArgs(donor.address, netAmount)
+        .and.to.emit(vault, "FeeCollected")
+        .withArgs(donor.address, feeAmount, netAmount);
     });
 
     it("Should reject zero deposits", async function () {
@@ -80,8 +95,14 @@ describe("ParametricVault", function () {
       await usdc.connect(donor).approve(await vault.getAddress(), DEPOSIT_AMOUNT);
       await vault.connect(donor).deposit(DEPOSIT_AMOUNT);
 
-      await vault.connect(donor).withdraw(DEPOSIT_AMOUNT);
-      expect(await usdc.balanceOf(donor.address)).to.equal(DEPOSIT_AMOUNT * 10n);
+      // Account for 0.5% fee - can only withdraw what was actually deposited (net amount)
+      const feeAmount = DEPOSIT_AMOUNT * 50n / 10000n;
+      const netAmount = DEPOSIT_AMOUNT - feeAmount;
+      
+      await vault.connect(donor).withdraw(netAmount);
+      // Original balance was 10x DEPOSIT_AMOUNT, minus DEPOSIT_AMOUNT sent, plus netAmount returned
+      // = 10x - DEPOSIT_AMOUNT + netAmount = 10x - feeAmount
+      expect(await usdc.balanceOf(donor.address)).to.equal(DEPOSIT_AMOUNT * 10n - feeAmount);
     });
 
     it("Should reject withdrawal of more than balance", async function () {
@@ -284,7 +305,55 @@ describe("ParametricVault", function () {
 
       await vault.connect(admin).unpause();
       await vault.connect(donor).deposit(DEPOSIT_AMOUNT);
-      expect(await vault.totalDeposits()).to.equal(DEPOSIT_AMOUNT);
+      
+      // Account for 0.5% fee
+      const feeAmount = DEPOSIT_AMOUNT * 50n / 10000n;
+      const netAmount = DEPOSIT_AMOUNT - feeAmount;
+      expect(await vault.totalDeposits()).to.equal(netAmount);
+    });
+  });
+
+  describe("Protocol Fees", function () {
+    it("Should set correct initial fee", async function () {
+      const { vault, treasury } = await loadFixture(deployVaultFixture);
+      const [feeBps, maxFeeBps, treasuryAddr, totalCollected] = await vault.getProtocolFeeInfo();
+      expect(feeBps).to.equal(50n); // 0.5%
+      expect(maxFeeBps).to.equal(500n); // 5% max
+      expect(treasuryAddr).to.equal(treasury.address);
+      expect(totalCollected).to.equal(0n);
+    });
+
+    it("Should allow DAO to update fee", async function () {
+      const { vault, dao } = await loadFixture(deployVaultFixture);
+      await vault.connect(dao).setProtocolFee(100n); // Change to 1%
+      expect(await vault.protocolFeeBps()).to.equal(100n);
+    });
+
+    it("Should reject fee above maximum", async function () {
+      const { vault, dao } = await loadFixture(deployVaultFixture);
+      await expect(vault.connect(dao).setProtocolFee(600n)) // 6% > 5% max
+        .to.be.revertedWithCustomError(vault, "FeeExceedsMaximum");
+    });
+
+    it("Should allow admin to update treasury", async function () {
+      const { vault, admin, donor } = await loadFixture(deployVaultFixture);
+      await vault.connect(admin).setTreasury(donor.address);
+      expect(await vault.treasury()).to.equal(donor.address);
+    });
+
+    it("Should track cumulative fees", async function () {
+      const { vault, usdc, donor } = await loadFixture(deployVaultFixture);
+      
+      // First deposit
+      await usdc.connect(donor).approve(await vault.getAddress(), DEPOSIT_AMOUNT * 2n);
+      await vault.connect(donor).deposit(DEPOSIT_AMOUNT);
+      
+      const fee1 = DEPOSIT_AMOUNT * 50n / 10000n;
+      expect(await vault.totalFeesCollected()).to.equal(fee1);
+      
+      // Second deposit
+      await vault.connect(donor).deposit(DEPOSIT_AMOUNT);
+      expect(await vault.totalFeesCollected()).to.equal(fee1 * 2n);
     });
   });
 });
