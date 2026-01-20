@@ -16,6 +16,9 @@ import { donationToast, walletErrorToast, toast } from "@/hooks";
 import { CampaignSelector } from "@/components/campaigns";
 import { getTxExplorerUrl, getExplorerName } from "@/lib/chain-utils";
 
+// Protocol fee configuration (matches smart contract)
+const PROTOCOL_FEE_BPS = 50; // 0.5% = 50 basis points
+
 interface DonationModalProps {
   children: React.ReactNode;
   initialAmount?: string;
@@ -310,6 +313,27 @@ export function DonationModal({
               selectedCampaignId={selectedCampaignId}
               onSelect={setSelectedCampaignId}
             />
+
+            {/* Fee Breakdown Display */}
+            {parseFloat(amount) > 0 && (
+              <div className="bg-slate-800/50 rounded-lg p-3 space-y-1.5 text-sm border border-slate-700">
+                <div className="flex justify-between text-gray-400">
+                  <span>Donation Amount</span>
+                  <span>${parseFloat(amount).toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between text-orange-400/80">
+                  <span>Protocol Fee (0.5%)</span>
+                  <span>-${(parseFloat(amount) * PROTOCOL_FEE_BPS / 10000).toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between font-semibold text-emerald-400 border-t border-slate-700 pt-1.5 mt-1">
+                  <span>To Disaster Relief</span>
+                  <span>${(parseFloat(amount) * (1 - PROTOCOL_FEE_BPS / 10000)).toFixed(2)}</span>
+                </div>
+                <p className="text-[10px] text-gray-500 mt-1">
+                  Protocol fee sustains operations. DAO can adjust via governance.
+                </p>
+              </div>
+            )}
 
             {!hasFunds && (
               <div className="flex items-center p-3 bg-amber-500/10 text-amber-500 rounded-lg text-sm">
