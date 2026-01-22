@@ -35,7 +35,7 @@ Disaster relief in Southeast Asia faces a **72-hour latency gap**. While victims
 | Resource | Link |
 |----------|------|
 | **Web App** | [disaster-protocol.vercel.app](https://disaster-protocol.vercel.app) |
-| **Vault Contract** | [0x95A3AC8Cd6A09CD057692f8ee16869734E02CB9E](https://sepolia-blockscout.lisk.com/address/0x95A3AC8Cd6A09CD057692f8ee16869734E02CB9E) |
+| **Vault Contract** | [0x4Dd3ec9705820Bf0635fb90b2ff1BC06e0b441a7](https://sepolia-blockscout.lisk.com/address/0x4Dd3ec9705820Bf0635fb90b2ff1BC06e0b441a7) |
 | **Governor** | [0x8fA50988f36af835de40153E871689148aE54E49](https://sepolia-blockscout.lisk.com/address/0x8fA50988f36af835de40153E871689148aE54E49) |
 | **RescueToken** | [0x4080ACE95cf319c40F952D2dCCE21b070270f14d](https://sepolia-blockscout.lisk.com/address/0x4080ACE95cf319c40F952D2dCCE21b070270f14d) |
 
