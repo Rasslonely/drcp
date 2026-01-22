@@ -8,9 +8,9 @@ dataSources:
     name: ParametricVault
     network: lisk-sepolia-testnet
     source:
-      address: "0x95A3AC8Cd6A09CD057692f8ee16869734E02CB9E"
+      address: "0x4Dd3ec9705820Bf0635fb90b2ff1BC06e0b441a7"
       abi: ParametricVault
-      startBlock: 0  # Start from beginning for new deployment
+      startBlock: 31720000  # Block near vault v2 deployment (2026-01-18)
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
@@ -65,7 +65,7 @@ dataSources:
     source:
       address: "0x4080ACE95cf319c40F952D2dCCE21b070270f14d"
       abi: RescueToken
-      startBlock: 0  # Start from beginning for new deployment
+      startBlock: 31720000  # Block near vault v2 deployment (2026-01-18)
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
