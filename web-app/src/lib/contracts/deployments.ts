@@ -18,7 +18,7 @@ export const DEPLOYMENTS = {
     DRCPGovernor: "0x8fA50988f36af835de40153E871689148aE54E49" as `0x${string}`,
     ImpactNFT: "0xb2752B174d4e5d5e88Ef243d2Bb11256Efe3b4BA" as `0x${string}`, // Not deployed (optional)
     MOCK_USDC_ADDRESS: "0xc8f823d7FbE14d950b188F961aaD53b88E9ddfB8" as `0x${string}`,
-    VAULT_ADDRESS: "0x95A3AC8Cd6A09CD057692f8ee16869734E02CB9E" as `0x${string}`,
+    VAULT_ADDRESS: "0x4Dd3ec9705820Bf0635fb90b2ff1BC06e0b441a7" as `0x${string}`, // v2 with 0.5% protocol fee
     PROJECT_TREASURY: "0xd861026738CD681890438ED4349b684E9f0113A7" as `0x${string}`, // Not deployed (optional)
     YIELD_CONTROLLER: "0x6e8Ff4Ffe11Cf25bc24c9a42DE64cE7eC0458fdE" as `0x${string}`, // Not deployed (optional)
     CREATOR_WALLET: "0x5f80439206742Ac04e031665d1DFEDe11C9730aD" as `0x${string}`,
