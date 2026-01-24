@@ -31,6 +31,8 @@ export const ABIS = {
     // Campaign admin functions (DAO_ROLE)
     "function createCampaign(string name, string description, uint256 targetAmount, uint256 deadline, bytes32 geoHash) external returns (uint256)",
     "function closeCampaign(uint256 campaignId) external",
+    // Emergency declaration (DAO_ROLE) - enables task creation
+    "function declareEmergencyByDAO(bytes32 disasterType, bytes32 geoHash, string evidence) external",
     // Task admin functions (DAO_ROLE)
     "function createTask(string description, uint256 reward, bytes32 geoHash) external returns (uint256)",
     "function verifyAndPay(uint256 taskId) external",

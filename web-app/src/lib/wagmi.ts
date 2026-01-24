@@ -68,14 +68,16 @@ if (typeof window !== "undefined") {
 const liskSepoliaTransport = fallback([
   http("https://rpc.sepolia-api.lisk.com", {
     batch: { batchSize: 100, wait: 50 },
+    timeout: 30000, // 30 second timeout
   }),
-  // Fallback: Dwellir
+  // Fallback: PublicNode
   http("https://lisk-sepolia-rpc.publicnode.com", {
     batch: { batchSize: 50, wait: 50 },
+    timeout: 30000,
   }),
 ], {
-  retryCount: 3,
-  retryDelay: 1000,
+  retryCount: 5,
+  retryDelay: 2000, // 2 second retry delay
 });
 
 // Polygon Amoy Transport

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import {
   ClipboardList,
@@ -14,13 +14,17 @@ import {
   MapPin,
   User,
   ArrowLeft,
+  AlertCircle,
+  Zap,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PageHeader } from "@/components/ui/page-header";
-import { useAccount } from "wagmi";
-import { ADMIN_ADDRESSES } from "@/lib/contracts/deployments";
+import { useAccount, useWriteContract, useWaitForTransactionReceipt } from "wagmi";
+import { ADMIN_ADDRESSES, getCurrentDeployment } from "@/lib/contracts/deployments";
+import { ABIS } from "@/lib/contracts/abis";
+import { toHex, keccak256 } from "viem";
 import {
   useAllTasks,
   useCreateTask,
@@ -30,6 +34,8 @@ import {
   TASK_STATUS_CONFIG,
   TaskDisplay,
 } from "@/hooks";
+import { useVaultStats } from "@/hooks/useVaultStats";
+import { txToast } from "@/hooks/useToast";
 import Link from "next/link";
 
 // Check if wallet address is in admin list (case-insensitive)
@@ -37,6 +43,133 @@ function isAdmin(address: string | undefined): boolean {
   if (!address) return false;
   return ADMIN_ADDRESSES.some(
     (admin) => admin.toLowerCase() === address.toLowerCase()
+  );
+}
+
+// ============================================
+// DECLARE EMERGENCY HOOK (Direct admin action)
+// ============================================
+function useDeclareEmergency() {
+  const deployment = getCurrentDeployment();
+  const { writeContract, data: hash, isPending, error: writeError, reset } = useWriteContract();
+  const { isLoading: isConfirming, isSuccess, error: receiptError } = useWaitForTransactionReceipt({ hash });
+
+  useEffect(() => {
+    if (hash) {
+      txToast(hash, "Emergency declaration submitted");
+    }
+  }, [hash]);
+
+  const declareEmergency = (disasterType: string, location: string, evidence: string) => {
+    // Convert strings to bytes32
+    const typeBytes = keccak256(toHex(disasterType)) as `0x${string}`;
+    const geoBytes = keccak256(toHex(location)) as `0x${string}`;
+
+    writeContract({
+      address: deployment.VAULT_ADDRESS as `0x${string}`,
+      abi: ABIS.ParametricVault,
+      functionName: "declareEmergencyByDAO",
+      args: [typeBytes, geoBytes, evidence],
+      gas: BigInt(500000),
+    });
+  };
+
+  return {
+    declareEmergency,
+    hash,
+    isPending,
+    isConfirming,
+    isSuccess,
+    error: writeError || receiptError,
+    reset,
+  };
+}
+
+// ============================================
+// VAULT STATE WARNING COMPONENT
+// ============================================
+function VaultStateWarning({ 
+  currentState, 
+  stateLabel,
+  onDeclareEmergency,
+  isPending,
+  isConfirming,
+  isSuccess,
+  error,
+}: { 
+  currentState: number | undefined;
+  stateLabel: string;
+  onDeclareEmergency: () => void;
+  isPending: boolean;
+  isConfirming: boolean;
+  isSuccess: boolean;
+  error: Error | null;
+}) {
+  // States: 0=IDLE, 1=ALERT, 2=EMERGENCY, 3=RELIEF_ACTIVE, 4=SETTLED
+  const canCreateTask = currentState === 2 || currentState === 3;
+  
+  if (canCreateTask) {
+    return (
+      <div className="p-4 rounded-xl bg-green-500/20 border border-green-500/30">
+        <div className="flex items-center gap-3">
+          <CheckCircle2 className="h-5 w-5 text-green-400" />
+          <div>
+            <p className="text-green-400 font-medium">Vault Ready: {stateLabel}</p>
+            <p className="text-green-400/70 text-sm">Task creation is enabled</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="p-4 rounded-xl bg-orange-500/20 border border-orange-500/30">
+      <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+        <div className="flex items-start gap-3 flex-1">
+          <AlertCircle className="h-5 w-5 text-orange-400 shrink-0 mt-0.5" />
+          <div>
+            <p className="text-orange-400 font-medium">
+              Vault State: {stateLabel || "IDLE"} - Task Creation Blocked
+            </p>
+            <p className="text-orange-400/70 text-sm">
+              Declare an emergency to enable volunteer task creation
+            </p>
+          </div>
+        </div>
+        
+        <div className="flex flex-col gap-2">
+          {error && (
+            <p className="text-red-400 text-xs">{error.message?.slice(0, 50)}...</p>
+          )}
+          {isSuccess ? (
+            <div className="flex items-center gap-2 text-green-400">
+              <CheckCircle2 className="h-4 w-4" />
+              <span className="text-sm">Emergency declared!</span>
+            </div>
+          ) : (
+            <Button
+              variant="primary"
+              size="sm"
+              onClick={onDeclareEmergency}
+              disabled={isPending || isConfirming}
+              className="whitespace-nowrap"
+            >
+              {isPending || isConfirming ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                  {isPending ? "Confirming..." : "Declaring..."}
+                </>
+              ) : (
+                <>
+                  <Zap className="h-4 w-4 mr-1" />
+                  Declare Emergency
+                </>
+              )}
+            </Button>
+          )}
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -298,6 +431,12 @@ export default function AdminTasksPage() {
   const [verifyingTaskId, setVerifyingTaskId] = useState<number | null>(null);
   const [cancellingTaskId, setCancellingTaskId] = useState<number | null>(null);
 
+  // Vault stats for state check
+  const { currentState, stateLabel, refetch: refetchVault } = useVaultStats();
+  
+  // Check if vault is in correct state for task creation
+  const canCreateTask = currentState === 2 || currentState === 3;
+
   const { 
     tasks, 
     openTasks, 
@@ -310,6 +449,36 @@ export default function AdminTasksPage() {
 
   const { verifyAndPay, isPending: isVerifying, isSuccess: verifySuccess, reset: resetVerify } = useVerifyAndPay();
   const { cancelTask, isPending: isCancelling, isSuccess: cancelSuccess, reset: resetCancel } = useCancelTask();
+  
+  // Declare emergency hook
+  const { 
+    declareEmergency, 
+    isPending: isDeclaringEmergency, 
+    isConfirming: isConfirmingEmergency,
+    isSuccess: emergencySuccess,
+    error: emergencyError,
+    reset: resetEmergency,
+  } = useDeclareEmergency();
+
+  // Handle declare emergency
+  const handleDeclareEmergency = () => {
+    declareEmergency(
+      "FLOOD",                           // Default disaster type
+      "Indonesia",                       // Default location
+      "Emergency declared via admin console for task creation"
+    );
+  };
+
+  // Refresh vault after emergency declared
+  useEffect(() => {
+    if (emergencySuccess) {
+      const timer = setTimeout(() => {
+        refetchVault();
+        resetEmergency();
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [emergencySuccess, refetchVault, resetEmergency]);
 
   // Handle verify
   const handleVerify = (taskId: number) => {
@@ -388,11 +557,28 @@ export default function AdminTasksPage() {
         title="Task Management"
         subtitle="Create and manage volunteer tasks for disaster relief"
       >
-        <Button variant="primary" size="sm" onClick={() => setShowCreateModal(true)}>
+        <Button 
+          variant="primary" 
+          size="sm" 
+          onClick={() => setShowCreateModal(true)}
+          disabled={!canCreateTask}
+          title={!canCreateTask ? "Declare emergency first to enable task creation" : undefined}
+        >
           <Plus className="h-4 w-4 mr-1" />
           Create Task
         </Button>
       </PageHeader>
+
+      {/* Vault State Warning */}
+      <VaultStateWarning
+        currentState={currentState}
+        stateLabel={stateLabel}
+        onDeclareEmergency={handleDeclareEmergency}
+        isPending={isDeclaringEmergency}
+        isConfirming={isConfirmingEmergency}
+        isSuccess={emergencySuccess}
+        error={emergencyError}
+      />
 
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">

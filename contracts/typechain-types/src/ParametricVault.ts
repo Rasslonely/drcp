@@ -137,6 +137,7 @@ export interface ParametricVaultInterface extends Interface {
       | "DAO_ROLE"
       | "DEFAULT_ADMIN_ROLE"
       | "MAX_ACTIVE_CAMPAIGNS"
+      | "MAX_FEE_BPS"
       | "MAX_TVL"
       | "MIN_CAMPAIGN_TARGET"
       | "ORACLE_ROLE"
@@ -162,6 +163,7 @@ export interface ParametricVaultInterface extends Interface {
       | "getCampaignCount"
       | "getCampaignDonorBalance"
       | "getEmergency"
+      | "getProtocolFeeInfo"
       | "getRoleAdmin"
       | "getTask"
       | "getTaskCount"
@@ -171,19 +173,24 @@ export interface ParametricVaultInterface extends Interface {
       | "latestRiskScore"
       | "pause"
       | "paused"
+      | "protocolFeeBps"
       | "renounceRole"
       | "resetToIdle"
       | "revokeRole"
       | "setEmergencyReleasePercentage"
+      | "setProtocolFee"
       | "setThresholds"
+      | "setTreasury"
       | "settleEmergency"
       | "stablecoin"
       | "submitProof"
       | "supportsInterface"
       | "tasks"
       | "totalDeposits"
+      | "totalFeesCollected"
       | "totalReleased"
       | "totalTaskPayouts"
+      | "treasury"
       | "unpause"
       | "updateRiskScore"
       | "verifyAndPay"
@@ -200,8 +207,10 @@ export interface ParametricVaultInterface extends Interface {
       | "EmergencyDeclared"
       | "EmergencyDeclaredByDAO"
       | "EmergencySettled"
+      | "FeeCollected"
       | "FundsReleased"
       | "Paused"
+      | "ProtocolFeeUpdated"
       | "RiskScoreUpdated"
       | "RoleAdminChanged"
       | "RoleGranted"
@@ -212,6 +221,7 @@ export interface ParametricVaultInterface extends Interface {
       | "TaskCreated"
       | "TaskProofSubmitted"
       | "TaskVerified"
+      | "TreasuryUpdated"
       | "Unpaused"
       | "Withdrawn"
   ): EventFragment;
@@ -227,6 +237,10 @@ export interface ParametricVaultInterface extends Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "MAX_ACTIVE_CAMPAIGNS",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "MAX_FEE_BPS",
     values?: undefined
   ): string;
   encodeFunctionData(functionFragment: "MAX_TVL", values?: undefined): string;
@@ -327,6 +341,10 @@ export interface ParametricVaultInterface extends Interface {
     values: [BigNumberish]
   ): string;
   encodeFunctionData(
+    functionFragment: "getProtocolFeeInfo",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
     functionFragment: "getRoleAdmin",
     values: [BytesLike]
   ): string;
@@ -357,6 +375,10 @@ export interface ParametricVaultInterface extends Interface {
   encodeFunctionData(functionFragment: "pause", values?: undefined): string;
   encodeFunctionData(functionFragment: "paused", values?: undefined): string;
   encodeFunctionData(
+    functionFragment: "protocolFeeBps",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
     functionFragment: "renounceRole",
     values: [BytesLike, AddressLike]
   ): string;
@@ -373,8 +395,16 @@ export interface ParametricVaultInterface extends Interface {
     values: [BigNumberish]
   ): string;
   encodeFunctionData(
+    functionFragment: "setProtocolFee",
+    values: [BigNumberish]
+  ): string;
+  encodeFunctionData(
     functionFragment: "setThresholds",
     values: [BigNumberish, BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "setTreasury",
+    values: [AddressLike]
   ): string;
   encodeFunctionData(
     functionFragment: "settleEmergency",
@@ -398,6 +428,10 @@ export interface ParametricVaultInterface extends Interface {
     values?: undefined
   ): string;
   encodeFunctionData(
+    functionFragment: "totalFeesCollected",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
     functionFragment: "totalReleased",
     values?: undefined
   ): string;
@@ -405,6 +439,7 @@ export interface ParametricVaultInterface extends Interface {
     functionFragment: "totalTaskPayouts",
     values?: undefined
   ): string;
+  encodeFunctionData(functionFragment: "treasury", values?: undefined): string;
   encodeFunctionData(functionFragment: "unpause", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "updateRiskScore",
@@ -431,6 +466,10 @@ export interface ParametricVaultInterface extends Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "MAX_ACTIVE_CAMPAIGNS",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "MAX_FEE_BPS",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "MAX_TVL", data: BytesLike): Result;
@@ -516,6 +555,10 @@ export interface ParametricVaultInterface extends Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
+    functionFragment: "getProtocolFeeInfo",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
     functionFragment: "getRoleAdmin",
     data: BytesLike
   ): Result;
@@ -537,6 +580,10 @@ export interface ParametricVaultInterface extends Interface {
   decodeFunctionResult(functionFragment: "pause", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "paused", data: BytesLike): Result;
   decodeFunctionResult(
+    functionFragment: "protocolFeeBps",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
     functionFragment: "renounceRole",
     data: BytesLike
   ): Result;
@@ -550,7 +597,15 @@ export interface ParametricVaultInterface extends Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
+    functionFragment: "setProtocolFee",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
     functionFragment: "setThresholds",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "setTreasury",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -572,6 +627,10 @@ export interface ParametricVaultInterface extends Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
+    functionFragment: "totalFeesCollected",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
     functionFragment: "totalReleased",
     data: BytesLike
   ): Result;
@@ -579,6 +638,7 @@ export interface ParametricVaultInterface extends Interface {
     functionFragment: "totalTaskPayouts",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "treasury", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "unpause", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "updateRiskScore",
@@ -736,6 +796,28 @@ export namespace EmergencySettledEvent {
   export type LogDescription = TypedLogDescription<Event>;
 }
 
+export namespace FeeCollectedEvent {
+  export type InputTuple = [
+    donor: AddressLike,
+    feeAmount: BigNumberish,
+    netAmount: BigNumberish
+  ];
+  export type OutputTuple = [
+    donor: string,
+    feeAmount: bigint,
+    netAmount: bigint
+  ];
+  export interface OutputObject {
+    donor: string;
+    feeAmount: bigint;
+    netAmount: bigint;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
+}
+
 export namespace FundsReleasedEvent {
   export type InputTuple = [amount: BigNumberish, reason: string];
   export type OutputTuple = [amount: bigint, reason: string];
@@ -754,6 +836,19 @@ export namespace PausedEvent {
   export type OutputTuple = [account: string];
   export interface OutputObject {
     account: string;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
+}
+
+export namespace ProtocolFeeUpdatedEvent {
+  export type InputTuple = [oldFee: BigNumberish, newFee: BigNumberish];
+  export type OutputTuple = [oldFee: bigint, newFee: bigint];
+  export interface OutputObject {
+    oldFee: bigint;
+    newFee: bigint;
   }
   export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
   export type Filter = TypedDeferredTopicFilter<Event>;
@@ -932,6 +1027,19 @@ export namespace TaskVerifiedEvent {
   export type LogDescription = TypedLogDescription<Event>;
 }
 
+export namespace TreasuryUpdatedEvent {
+  export type InputTuple = [oldTreasury: AddressLike, newTreasury: AddressLike];
+  export type OutputTuple = [oldTreasury: string, newTreasury: string];
+  export interface OutputObject {
+    oldTreasury: string;
+    newTreasury: string;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
+}
+
 export namespace UnpausedEvent {
   export type InputTuple = [account: AddressLike];
   export type OutputTuple = [account: string];
@@ -1007,6 +1115,8 @@ export interface ParametricVault extends BaseContract {
   DEFAULT_ADMIN_ROLE: TypedContractMethod<[], [string], "view">;
 
   MAX_ACTIVE_CAMPAIGNS: TypedContractMethod<[], [bigint], "view">;
+
+  MAX_FEE_BPS: TypedContractMethod<[], [bigint], "view">;
 
   MAX_TVL: TypedContractMethod<[], [bigint], "view">;
 
@@ -1143,6 +1253,19 @@ export interface ParametricVault extends BaseContract {
     "view"
   >;
 
+  getProtocolFeeInfo: TypedContractMethod<
+    [],
+    [
+      [bigint, bigint, string, bigint] & {
+        feeBps: bigint;
+        maxFeeBps: bigint;
+        treasuryAddr: string;
+        totalCollected: bigint;
+      }
+    ],
+    "view"
+  >;
+
   getRoleAdmin: TypedContractMethod<[role: BytesLike], [string], "view">;
 
   getTask: TypedContractMethod<
@@ -1184,6 +1307,8 @@ export interface ParametricVault extends BaseContract {
 
   paused: TypedContractMethod<[], [boolean], "view">;
 
+  protocolFeeBps: TypedContractMethod<[], [bigint], "view">;
+
   renounceRole: TypedContractMethod<
     [role: BytesLike, callerConfirmation: AddressLike],
     [void],
@@ -1204,8 +1329,20 @@ export interface ParametricVault extends BaseContract {
     "nonpayable"
   >;
 
+  setProtocolFee: TypedContractMethod<
+    [_feeBps: BigNumberish],
+    [void],
+    "nonpayable"
+  >;
+
   setThresholds: TypedContractMethod<
     [_alertThreshold: BigNumberish, _emergencyThreshold: BigNumberish],
+    [void],
+    "nonpayable"
+  >;
+
+  setTreasury: TypedContractMethod<
+    [_treasury: AddressLike],
     [void],
     "nonpayable"
   >;
@@ -1262,9 +1399,13 @@ export interface ParametricVault extends BaseContract {
 
   totalDeposits: TypedContractMethod<[], [bigint], "view">;
 
+  totalFeesCollected: TypedContractMethod<[], [bigint], "view">;
+
   totalReleased: TypedContractMethod<[], [bigint], "view">;
 
   totalTaskPayouts: TypedContractMethod<[], [bigint], "view">;
+
+  treasury: TypedContractMethod<[], [string], "view">;
 
   unpause: TypedContractMethod<[], [void], "nonpayable">;
 
@@ -1299,6 +1440,9 @@ export interface ParametricVault extends BaseContract {
   ): TypedContractMethod<[], [string], "view">;
   getFunction(
     nameOrSignature: "MAX_ACTIVE_CAMPAIGNS"
+  ): TypedContractMethod<[], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "MAX_FEE_BPS"
   ): TypedContractMethod<[], [bigint], "view">;
   getFunction(
     nameOrSignature: "MAX_TVL"
@@ -1457,6 +1601,20 @@ export interface ParametricVault extends BaseContract {
     "view"
   >;
   getFunction(
+    nameOrSignature: "getProtocolFeeInfo"
+  ): TypedContractMethod<
+    [],
+    [
+      [bigint, bigint, string, bigint] & {
+        feeBps: bigint;
+        maxFeeBps: bigint;
+        treasuryAddr: string;
+        totalCollected: bigint;
+      }
+    ],
+    "view"
+  >;
+  getFunction(
     nameOrSignature: "getRoleAdmin"
   ): TypedContractMethod<[role: BytesLike], [string], "view">;
   getFunction(
@@ -1507,6 +1665,9 @@ export interface ParametricVault extends BaseContract {
     nameOrSignature: "paused"
   ): TypedContractMethod<[], [boolean], "view">;
   getFunction(
+    nameOrSignature: "protocolFeeBps"
+  ): TypedContractMethod<[], [bigint], "view">;
+  getFunction(
     nameOrSignature: "renounceRole"
   ): TypedContractMethod<
     [role: BytesLike, callerConfirmation: AddressLike],
@@ -1527,12 +1688,18 @@ export interface ParametricVault extends BaseContract {
     nameOrSignature: "setEmergencyReleasePercentage"
   ): TypedContractMethod<[newPercentage: BigNumberish], [void], "nonpayable">;
   getFunction(
+    nameOrSignature: "setProtocolFee"
+  ): TypedContractMethod<[_feeBps: BigNumberish], [void], "nonpayable">;
+  getFunction(
     nameOrSignature: "setThresholds"
   ): TypedContractMethod<
     [_alertThreshold: BigNumberish, _emergencyThreshold: BigNumberish],
     [void],
     "nonpayable"
   >;
+  getFunction(
+    nameOrSignature: "setTreasury"
+  ): TypedContractMethod<[_treasury: AddressLike], [void], "nonpayable">;
   getFunction(
     nameOrSignature: "settleEmergency"
   ): TypedContractMethod<[emergencyId: BigNumberish], [void], "nonpayable">;
@@ -1584,11 +1751,17 @@ export interface ParametricVault extends BaseContract {
     nameOrSignature: "totalDeposits"
   ): TypedContractMethod<[], [bigint], "view">;
   getFunction(
+    nameOrSignature: "totalFeesCollected"
+  ): TypedContractMethod<[], [bigint], "view">;
+  getFunction(
     nameOrSignature: "totalReleased"
   ): TypedContractMethod<[], [bigint], "view">;
   getFunction(
     nameOrSignature: "totalTaskPayouts"
   ): TypedContractMethod<[], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "treasury"
+  ): TypedContractMethod<[], [string], "view">;
   getFunction(
     nameOrSignature: "unpause"
   ): TypedContractMethod<[], [void], "nonpayable">;
@@ -1659,6 +1832,13 @@ export interface ParametricVault extends BaseContract {
     EmergencySettledEvent.OutputObject
   >;
   getEvent(
+    key: "FeeCollected"
+  ): TypedContractEvent<
+    FeeCollectedEvent.InputTuple,
+    FeeCollectedEvent.OutputTuple,
+    FeeCollectedEvent.OutputObject
+  >;
+  getEvent(
     key: "FundsReleased"
   ): TypedContractEvent<
     FundsReleasedEvent.InputTuple,
@@ -1671,6 +1851,13 @@ export interface ParametricVault extends BaseContract {
     PausedEvent.InputTuple,
     PausedEvent.OutputTuple,
     PausedEvent.OutputObject
+  >;
+  getEvent(
+    key: "ProtocolFeeUpdated"
+  ): TypedContractEvent<
+    ProtocolFeeUpdatedEvent.InputTuple,
+    ProtocolFeeUpdatedEvent.OutputTuple,
+    ProtocolFeeUpdatedEvent.OutputObject
   >;
   getEvent(
     key: "RiskScoreUpdated"
@@ -1741,6 +1928,13 @@ export interface ParametricVault extends BaseContract {
     TaskVerifiedEvent.InputTuple,
     TaskVerifiedEvent.OutputTuple,
     TaskVerifiedEvent.OutputObject
+  >;
+  getEvent(
+    key: "TreasuryUpdated"
+  ): TypedContractEvent<
+    TreasuryUpdatedEvent.InputTuple,
+    TreasuryUpdatedEvent.OutputTuple,
+    TreasuryUpdatedEvent.OutputObject
   >;
   getEvent(
     key: "Unpaused"
@@ -1835,6 +2029,17 @@ export interface ParametricVault extends BaseContract {
       EmergencySettledEvent.OutputObject
     >;
 
+    "FeeCollected(address,uint256,uint256)": TypedContractEvent<
+      FeeCollectedEvent.InputTuple,
+      FeeCollectedEvent.OutputTuple,
+      FeeCollectedEvent.OutputObject
+    >;
+    FeeCollected: TypedContractEvent<
+      FeeCollectedEvent.InputTuple,
+      FeeCollectedEvent.OutputTuple,
+      FeeCollectedEvent.OutputObject
+    >;
+
     "FundsReleased(uint256,string)": TypedContractEvent<
       FundsReleasedEvent.InputTuple,
       FundsReleasedEvent.OutputTuple,
@@ -1855,6 +2060,17 @@ export interface ParametricVault extends BaseContract {
       PausedEvent.InputTuple,
       PausedEvent.OutputTuple,
       PausedEvent.OutputObject
+    >;
+
+    "ProtocolFeeUpdated(uint256,uint256)": TypedContractEvent<
+      ProtocolFeeUpdatedEvent.InputTuple,
+      ProtocolFeeUpdatedEvent.OutputTuple,
+      ProtocolFeeUpdatedEvent.OutputObject
+    >;
+    ProtocolFeeUpdated: TypedContractEvent<
+      ProtocolFeeUpdatedEvent.InputTuple,
+      ProtocolFeeUpdatedEvent.OutputTuple,
+      ProtocolFeeUpdatedEvent.OutputObject
     >;
 
     "RiskScoreUpdated(uint8,bytes32,bytes32)": TypedContractEvent<
@@ -1965,6 +2181,17 @@ export interface ParametricVault extends BaseContract {
       TaskVerifiedEvent.InputTuple,
       TaskVerifiedEvent.OutputTuple,
       TaskVerifiedEvent.OutputObject
+    >;
+
+    "TreasuryUpdated(address,address)": TypedContractEvent<
+      TreasuryUpdatedEvent.InputTuple,
+      TreasuryUpdatedEvent.OutputTuple,
+      TreasuryUpdatedEvent.OutputObject
+    >;
+    TreasuryUpdated: TypedContractEvent<
+      TreasuryUpdatedEvent.InputTuple,
+      TreasuryUpdatedEvent.OutputTuple,
+      TreasuryUpdatedEvent.OutputObject
     >;
 
     "Unpaused(address)": TypedContractEvent<
