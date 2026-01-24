@@ -52,9 +52,85 @@ function encodeVaultFunction(
   }
 }
 
+/**
+ * Converts a string to bytes32 format
+ * Used for disaster types and locations in declareEmergencyByDAO
+ */
+function stringToBytes32(str: string): `0x${string}` {
+  // Encode string to UTF-8 bytes, pad to 32 bytes
+  const encoder = new TextEncoder();
+  const bytes = encoder.encode(str.slice(0, 31)); // Max 31 chars
+  const result = new Uint8Array(32);
+  result.set(bytes);
+  return `0x${Array.from(result).map(b => b.toString(16).padStart(2, '0')).join('')}` as `0x${string}`;
+}
+
 // ============ Templates ============
 
 export const PROPOSAL_TEMPLATES: ProposalTemplate[] = [
+  // CRITICAL: This template triggers vault state change to enable task creation
+  {
+    id: "declare-emergency",
+    name: "Declare Emergency",
+    icon: "🆘",
+    description: "Declare disaster emergency to enable volunteer task creation and fund release",
+    defaultType: "emergency",
+    fields: [
+      {
+        name: "disasterType",
+        label: "Disaster Type",
+        type: "select",
+        required: true,
+        options: [
+          { value: "FLOOD", label: "Banjir (Flood)" },
+          { value: "EARTHQUAKE", label: "Gempa Bumi (Earthquake)" },
+          { value: "TSUNAMI", label: "Tsunami" },
+          { value: "VOLCANO", label: "Gunung Berapi (Volcanic Eruption)" },
+          { value: "WILDFIRE", label: "Kebakaran Hutan (Wildfire)" },
+          { value: "LANDSLIDE", label: "Tanah Longsor (Landslide)" },
+          { value: "CYCLONE", label: "Siklon/Badai (Cyclone)" },
+        ],
+      },
+      {
+        name: "location",
+        label: "Affected Region",
+        type: "text",
+        placeholder: "e.g., Kalimantan Selatan",
+        required: true,
+        validation: (v) => {
+          if (!v || v.trim().length < 3) return "Location must be at least 3 characters";
+          return null;
+        },
+      },
+      {
+        name: "evidence",
+        label: "Evidence URL/IPFS",
+        type: "text",
+        placeholder: "IPFS hash or news article URL",
+        required: true,
+        validation: (v) => {
+          if (!v || v.trim().length < 5) return "Please provide evidence link";
+          return null;
+        },
+      },
+    ],
+    buildAction: (values) => {
+      // Encode declareEmergencyByDAO call with proper parameters
+      const calldata = encodeVaultFunction(
+        "declareEmergencyByDAO(bytes32,bytes32,string)",
+        [
+          stringToBytes32(values.disasterType || "DISASTER"),
+          stringToBytes32(values.location || "Indonesia"),
+          values.evidence || "",
+        ]
+      );
+      return {
+        targets: [VAULT_ADDRESS],
+        values: [BigInt(0)],
+        calldatas: [calldata],
+      };
+    },
+  },
   {
     id: "emergency-release",
     name: "Emergency Fund Release",
@@ -180,6 +256,46 @@ export const PROPOSAL_TEMPLATES: ProposalTemplate[] = [
         targets: [VAULT_ADDRESS],
         values: [BigInt(0)],
         calldatas: ["0x" as `0x${string}`], // Signaling proposal
+      };
+    },
+  },
+  {
+    id: "adjust-protocol-fee",
+    name: "Adjust Protocol Fee",
+    icon: "💰",
+    description: "Change the protocol fee rate (currently 0.5%, max 5%)",
+    defaultType: "standard",
+    fields: [
+      {
+        name: "newFeeBps",
+        label: "New Fee (basis points)",
+        type: "number",
+        placeholder: "50 = 0.5%",
+        required: true,
+        validation: (v) => {
+          const num = parseInt(v);
+          if (isNaN(num) || num < 0) return "Must be 0 or greater";
+          if (num > 500) return "Cannot exceed 5% (500 basis points)";
+          return null;
+        },
+      },
+      {
+        name: "rationale",
+        label: "Rationale",
+        type: "textarea",
+        placeholder: "Explain why this fee change is needed...",
+        required: true,
+      },
+    ],
+    buildAction: (values) => {
+      const calldata = encodeVaultFunction(
+        "setProtocolFee(uint256)",
+        [BigInt(values.newFeeBps || "50")]
+      );
+      return {
+        targets: [VAULT_ADDRESS],
+        values: [BigInt(0)],
+        calldatas: [calldata],
       };
     },
   },
