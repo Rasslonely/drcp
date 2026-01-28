@@ -3,7 +3,7 @@
 > **Protocol:** Disaster Response Coordination Protocol (DRCP)
 > **Author:** DRCP Team
 > **Version:** 1.0.0-beta
-> **Network:** Polygon Amoy (Testnet) → Polygon PoS (Mainnet)
+> **Network:** Lisk Sepolia (Testnet) → Lisk Mainnet (Future)
 > **Last Updated:** 2026-01-06
 
 ---
@@ -243,14 +243,15 @@ npm run coverage
 
 ## 🔗 Deployed Contracts (Testnet)
 
-| Contract | Address (Polygon Amoy) |
+| Contract | Address (Lisk Sepolia) |
 |----------|------------------------|
-| ParametricVault | `0x5ce8cCF75A8Ff90Ba1e73Ba9cBE81dEab6A5dFfB` |
-| RescueToken | `0xa5247E2e494186EAe1Df1e2e747C3c920D8AC7a9` |
-| DRCPGovernor | `0x...` |
-| DRCPTimelock | `0x...` |
+| ParametricVault | `0x6e1cA331F1f701d7B24f7367f5c8A9D07EeEc518` |
+| RescueToken | `0x4080ACE95cf319c40F952D2dCCE21b070270f14d` |
+| DRCPGovernor | `0x8fA50988f36af835de40153E871689148aE54E49` |
+| DRCPTimelock | `0xb38c87D42AA5fbF778e1093c61D5e4a010996EB0` |
+| ImpactNFT | `0x7D1E0D4C089c6FC1F4500f6C98365DDA6D316E8B` |
 
-> **Note:** Addresses need to be verified on PolygonScan
+> **Note:** Addresses need to be verified on Lisk Blockscout
 
 ---
 

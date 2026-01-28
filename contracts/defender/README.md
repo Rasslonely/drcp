@@ -13,11 +13,12 @@ This directory contains configuration for OpenZeppelin Defender monitoring.
 
 1. Log into OpenZeppelin Defender
 2. Go to **Contracts** → **Add Contract**
-3. Select **Polygon** network
+3. Select **Lisk Sepolia** network (if available in Defender, or use custom RPC)
 4. Enter contract addresses from your deployment:
-   - ParametricVault: `0x5ce8cCF75A8Ff90Ba1e73Ba9cBE81dEab6A5dFfB`
-   - RescueToken: `0xa5247E2e494186EAe1Df1e2e747C3c920D8AC7a9`
-   - DRCPGovernor: (your deployed address)
+   - ParametricVault: `0x6e1cA331F1f701d7B24f7367f5c8A9D07EeEc518`
+   - RescueToken: `0x4080ACE95cf319c40F952D2dCCE21b070270f14d`
+   - DRCPGovernor: `0x8fA50988f36af835de40153E871689148aE54E49`
+   - ImpactNFT: `0x7D1E0D4C089c6FC1F4500f6C98365DDA6D316E8B`
 
 ### 2. Create Sentinels
 

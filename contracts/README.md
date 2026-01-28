@@ -21,8 +21,11 @@ npm run test
 # Run tests with coverage
 npm run coverage
 
-# Deploy to Polygon Amoy
-npm run deploy:amoy
+# Deploy to Lisk Sepolia
+npm run deploy:lisk
+
+# Verifying on Lisk Blockscout (automated during deployment in config)
+# npx hardhat verify --network lisk-sepolia <CONTRACT_ADDRESS> <ARGUMENTS>
 ```
 
 ## Contracts
@@ -36,7 +39,7 @@ npm run deploy:amoy
 
 ## Network
 
-**Polygon Amoy Testnet**
-- Chain ID: 80002
-- RPC: `https://rpc-amoy.polygon.technology`
-- Faucet: `https://faucet.polygon.technology`
+**Lisk Sepolia Testnet**
+- Chain ID: 4202
+- RPC: `https://rpc.sepolia-api.lisk.com`
+- Explorer: `https://sepolia-blockscout.lisk.com`

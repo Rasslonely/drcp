@@ -39,6 +39,7 @@ Disaster relief in Southeast Asia faces a **72-hour latency gap**. While victims
 | **ImpactNFT** | [0x7D1E0D4C089c6FC1F4500f6C98365DDA6D316E8B](https://sepolia-blockscout.lisk.com/address/0x7D1E0D4C089c6FC1F4500f6C98365DDA6D316E8B) |
 | **Governor** | [0x8fA50988f36af835de40153E871689148aE54E49](https://sepolia-blockscout.lisk.com/address/0x8fA50988f36af835de40153E871689148aE54E49) |
 | **RescueToken** | [0x4080ACE95cf319c40F952D2dCCE21b070270f14d](https://sepolia-blockscout.lisk.com/address/0x4080ACE95cf319c40F952D2dCCE21b070270f14d) |
+| **Timelock** | [0xb38c87D42AA5fbF778e1093c61D5e4a010996EB0](https://sepolia-blockscout.lisk.com/address/0xb38c87D42AA5fbF778e1093c61D5e4a010996EB0) |
 
 ---
 
@@ -57,10 +58,14 @@ Disaster relief in Southeast Asia faces a **72-hour latency gap**. While victims
                           │
 ┌─────────────────────────▼───────────────────────────────────┐
 │                   Lisk Sepolia (Blockchain)                 │
-│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐       │
+│  ┌───────────────┐  ┌──────────────┐  ┌──────────────┐      │
 │  │ParametricVault│  │ DRCPGovernor │  │  ImpactNFT   │      │
 │  │  (Funds)      │  │   (DAO)      │  │ (Reputation) │      │
-│  └──────────────┘  └──────────────┘  └──────────────┘       │
+│  └───────────────┘  └──────────────┘  └──────────────┘      │
+│  ┌──────────────┐  ┌──────────────┐                         │
+│  │ RescueToken  │  │ DRCPTimelock │                         │
+│  │ (Governance) │  │  (Security)  │                         │
+│  └──────────────┘  └──────────────┘                         │
 └─────────────────────────────────────────────────────────────┘
 ```
 

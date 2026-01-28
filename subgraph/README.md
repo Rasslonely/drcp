@@ -1,6 +1,6 @@
 # DRCP Subgraph
 
-Subgraph for the Disaster Response Coordination Protocol (DRCP) ParametricVault contract on Polygon Amoy testnet.
+Subgraph for the Disaster Response Coordination Protocol (DRCP) ParametricVault contract on Lisk Sepolia testnet.
 
 ## Setup
 
@@ -16,15 +16,28 @@ npm run codegen  # Generate types from schema
 npm run build    # Compile subgraph to WASM
 ```
 
-## Deploy to The Graph Studio
+## Deploy to Goldsky (Recommended for Lisk)
+
+Goldsky provides faster indexing for Lisk Sepolia.
+
+### 1. Create Subgraph on Goldsky
+
+1. Go to [Goldsky](https://goldsky.com/)
+2. Create mapping for Lisk Sepolia
+
+### 2. Deploy
+
+```bash
+goldsky subgraph deploy drcp-lisk-sepolia/v1.0.0
+```
+
+## Deploy to The Graph Studio (Alternative)
 
 ### 1. Create Subgraph
 
 1. Go to [The Graph Studio](https://thegraph.com/studio/)
-2. Connect your wallet
-3. Click "Create a Subgraph"
-4. Name: `drcp-polygon-amoy`
-5. Network: `Polygon Amoy`
+2. Name: `drcp-lisk-sepolia`
+3. Network: `Lisk Sepolia`
 
 ### 2. Authenticate
 
@@ -32,12 +45,10 @@ npm run build    # Compile subgraph to WASM
 graph auth --studio <DEPLOY_KEY>
 ```
 
-Get your deploy key from the subgraph page in Graph Studio.
-
 ### 3. Deploy
 
 ```bash
-graph deploy --studio drcp-polygon-amoy
+graph deploy --studio drcp-lisk-sepolia
 ```
 
 ### 4. Verify
