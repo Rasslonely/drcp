@@ -2,7 +2,7 @@ import { useReadContract, useReadContracts, useWriteContract, useAccount } from 
 import { ABIS } from '../constants/abis';
 import { DEPLOYMENTS } from '../constants/deployments';
 
-const CONTRACTS = DEPLOYMENTS.amoy;
+const CONTRACTS = DEPLOYMENTS["lisk-sepolia"];
 
 export const useReputation = () => {
   const { address } = useAccount();
@@ -66,4 +66,19 @@ export const useClaimTask = () => {
     };
     
     return { claim, isPending, isSuccess };
+};
+
+export const useSubmitProof = () => {
+    const { writeContract, isPending, isSuccess, error } = useWriteContract();
+    
+    const submit = (taskId: bigint, proofHash: `0x${string}`) => {
+        writeContract({
+            abi: ABIS.ParametricVault,
+            address: CONTRACTS.VAULT_ADDRESS as `0x${string}`,
+            functionName: 'submitProof',
+            args: [taskId, proofHash]
+        });
+    };
+    
+    return { submit, isPending, isSuccess, error };
 };

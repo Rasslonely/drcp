@@ -72,10 +72,15 @@ export function getAddressExplorerUrl(address: string): string {
 }
 
 /**
- * Get explorer URL for a token
+ * Get explorer URL for a specific NFT instance
  */
-export function getTokenExplorerUrl(tokenAddress: string): string {
-  return `${chainConfig.explorerUrl}/token/${tokenAddress}`;
+export function getNFTExplorerUrl(nftAddress: string, tokenId: number | string | bigint): string {
+  // Blockscout format for Lisk Sepolia: /token/{addr}/instance/{id}
+  if (isLiskSepolia) {
+    return `${chainConfig.explorerUrl}/token/${nftAddress}/instance/${tokenId.toString()}`;
+  }
+  // Fallback for Polygon/Standard
+  return `${chainConfig.explorerUrl}/nft/${nftAddress}/${tokenId.toString()}`;
 }
 
 /**

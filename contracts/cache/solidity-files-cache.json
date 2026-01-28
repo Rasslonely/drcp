@@ -2119,8 +2119,8 @@
       ]
     },
     "C:\\rass_code\\Projects\\web3-projects\\disaster-protocol\\contracts\\src\\ParametricVault.sol": {
-      "lastModificationDate": 1768749060631,
-      "contentHash": "5055fef79ca6de6ab6d39be030b8ba72",
+      "lastModificationDate": 1769317684729,
+      "contentHash": "29ce50d9523a53339f2446baf0bd242a",
       "sourceName": "src/ParametricVault.sol",
       "solcConfig": {
         "version": "0.8.27",
@@ -2151,7 +2151,8 @@
         "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol",
         "@openzeppelin/contracts/access/AccessControl.sol",
         "@openzeppelin/contracts/utils/ReentrancyGuard.sol",
-        "@openzeppelin/contracts/utils/Pausable.sol"
+        "@openzeppelin/contracts/utils/Pausable.sol",
+        "./ImpactNFT.sol"
       ],
       "versionPragmas": [
         "^0.8.27"

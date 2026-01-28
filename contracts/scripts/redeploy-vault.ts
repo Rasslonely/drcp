@@ -7,9 +7,11 @@ async function main() {
 
   // Use the existing MockUSDC address from deployments
   const MOCK_USDC = "0xCAa80AbfeC9871D09911bF488e9Ed230d00093e2";
+  const IMPACT_NFT = "0x3A34430EFD3F45Fe808f28338652cEFD801a71f6";
+  const TREASURY = "0x4603eE7AECB9959335f064d0547001D4b9e0BdE9";
 
   const VaultFactory = await ethers.getContractFactory("ParametricVault");
-  const vault = await VaultFactory.deploy(MOCK_USDC, deployer.address);
+  const vault = await VaultFactory.deploy(MOCK_USDC, IMPACT_NFT, deployer.address, TREASURY);
   await vault.waitForDeployment();
   
   const vaultAddress = await vault.getAddress();

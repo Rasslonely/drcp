@@ -3,11 +3,13 @@
 :root {
   --background: #030712;
   --foreground: #f9fafb;
+  color-scheme: dark; /* Force browser UI to dark mode */
 }
 
 /* Smooth scrolling for anchor links */
 html {
   scroll-behavior: smooth;
+  background: var(--background);
 }
 
 /* Prevent horizontal overflow globally */
@@ -23,22 +25,29 @@ body {
   font-family: 'Inter', system-ui, sans-serif;
 }
 
-/* Custom scrollbar */
+/* Premium Glassmorphic Scrollbar - High Contrast Fix */
 ::-webkit-scrollbar {
-  width: 8px;
+  width: 12px;
 }
 
 ::-webkit-scrollbar-track {
-  background: rgba(255, 255, 255, 0.05);
+  background: #030712;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 4px;
+  background: #6366f1; /* Solid Indigo for visibility */
+  border-radius: 10px;
+  border: 3px solid #030712; /* This creates the "floating pill" effect */
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.2);
+  background: #818cf8; /* Light Indigo Hover */
+}
+
+/* For Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #6366f1 #030712;
 }
 
 /* Gradient text utility */

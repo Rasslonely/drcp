@@ -38,6 +38,7 @@ export function useFundFlow(): FundFlowData {
   const {
     totalDeposits,
     releasedFunds,
+    totalFeesCollected,
     isLoading: loadingStats,
   } = useVaultStats();
 
@@ -49,6 +50,7 @@ export function useFundFlow(): FundFlowData {
     // Parse BigInt values to numbers (USDC has 6 decimals)
     const deposits = totalDeposits ? Number(totalDeposits) / 1_000_000 : 0;
     const released = releasedFunds ? Number(releasedFunds) / 1_000_000 : 0;
+    const fees = totalFeesCollected ? Number(totalFeesCollected) / 1_000_000 : 0;
 
     // Calculate volunteer payouts from transactions
     const volunteerPayouts = transactions
@@ -61,6 +63,8 @@ export function useFundFlow(): FundFlowData {
 
     // Calculate relief distribution (released - volunteer payouts)
     const reliefDistribution = Math.max(0, released - volunteerPayouts);
+    
+    const grossDonations = deposits + fees;
 
     // Current vault balance
     const vaultBalance = deposits - released;
@@ -69,15 +73,15 @@ export function useFundFlow(): FundFlowData {
     const formatUSD = (val: number) =>
       val >= 1000
         ? `$${(val / 1000).toFixed(1)}k`
-        : `$${val.toFixed(0)}`;
+        : `$${val.toFixed(2)}`;
 
     // Build nodes
     const nodes: FlowNode[] = [
       {
         id: "donors",
         label: "Donors",
-        value: deposits,
-        valueFormatted: formatUSD(deposits),
+        value: grossDonations,
+        valueFormatted: formatUSD(grossDonations),
         color: "#10B981", // emerald
         icon: "💰",
       },
@@ -88,6 +92,14 @@ export function useFundFlow(): FundFlowData {
         valueFormatted: formatUSD(vaultBalance),
         color: "#6366F1", // indigo
         icon: "🔐",
+      },
+      {
+        id: "treasury",
+        label: "Sustainability",
+        value: fees,
+        valueFormatted: formatUSD(fees),
+        color: "#F472B6", // pink-400
+        icon: "🛡️",
       },
       {
         id: "relief",
@@ -114,6 +126,12 @@ export function useFundFlow(): FundFlowData {
         target: "vault",
         value: deposits,
         color: "url(#gradient-donors-vault)",
+      },
+      {
+        source: "donors",
+        target: "treasury",
+        value: fees,
+        color: "url(#gradient-donors-treasury)",
       },
       {
         source: "vault",

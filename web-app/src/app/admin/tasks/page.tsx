@@ -21,8 +21,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PageHeader } from "@/components/ui/page-header";
-import { useAccount, useWriteContract, useWaitForTransactionReceipt } from "wagmi";
-import { ADMIN_ADDRESSES, getCurrentDeployment } from "@/lib/contracts/deployments";
+import { useAccount, useWriteContract, useWaitForTransactionReceipt, useReadContract, useReadContracts } from "wagmi";
+import { ADMIN_ADDRESSES, getCurrentDeployment, CHAIN_ID } from "@/lib/contracts/deployments";
 import { ABIS } from "@/lib/contracts/abis";
 import { toHex, keccak256 } from "viem";
 import {
@@ -35,7 +35,7 @@ import {
   TaskDisplay,
 } from "@/hooks";
 import { useVaultStats } from "@/hooks/useVaultStats";
-import { txToast } from "@/hooks/useToast";
+import { txToast, toast } from "@/hooks/useToast";
 import Link from "next/link";
 
 // Check if wallet address is in admin list (case-insensitive)
@@ -88,10 +88,70 @@ function useDeclareEmergency() {
 // ============================================
 // VAULT STATE WARNING COMPONENT
 // ============================================
+// ============================================
+// SETTLE EMERGENCY HOOK
+// ============================================
+function useSettleEmergency() {
+  const deployment = getCurrentDeployment();
+  const { writeContract, data: hash, isPending, reset } = useWriteContract({
+    mutation: {
+      onError: (error) => {
+        console.error("WriteContract Error:", error);
+        toast.error(`Contract Error: ${error.message.split("\n")[0]}`);
+      }
+    }
+  });
+  const { isLoading: isConfirming, isSuccess, error: receiptError } = useWaitForTransactionReceipt({ hash });
+
+  useEffect(() => {
+    if (hash) txToast(hash, "Settling emergency...");
+  }, [hash]);
+
+  const settleEmergency = (emergencyId: number) => {
+    writeContract({
+      address: deployment.VAULT_ADDRESS as `0x${string}`,
+      abi: ABIS.ParametricVault,
+      functionName: "settleEmergency",
+      args: [BigInt(emergencyId)],
+    });
+  };
+
+  return { settleEmergency, hash, isPending, isConfirming, isSuccess, error: receiptError, reset };
+}
+
+// ============================================
+// RESET TO IDLE HOOK
+// ============================================
+function useResetToIdle() {
+  const deployment = getCurrentDeployment();
+  const { writeContract, data: hash, isPending, error: writeError, reset } = useWriteContract();
+  const { isLoading: isConfirming, isSuccess, error: receiptError } = useWaitForTransactionReceipt({ hash });
+
+  useEffect(() => {
+    if (hash) txToast(hash, "Resetting vault to IDLE...");
+  }, [hash]);
+
+  const resetToIdle = () => {
+    writeContract({
+      address: deployment.VAULT_ADDRESS as `0x${string}`,
+      abi: ABIS.ParametricVault,
+      functionName: "resetToIdle",
+      args: [],
+    });
+  };
+
+  return { resetToIdle, hash, isPending, isConfirming, isSuccess, error: writeError || receiptError, reset };
+}
+
+// ============================================
+// VAULT STATE WARNING COMPONENT
+// ============================================
 function VaultStateWarning({ 
   currentState, 
   stateLabel,
   onDeclareEmergency,
+  onSettle,
+  onReset,
   isPending,
   isConfirming,
   isSuccess,
@@ -100,6 +160,8 @@ function VaultStateWarning({
   currentState: number | undefined;
   stateLabel: string;
   onDeclareEmergency: () => void;
+  onSettle: () => void;
+  onReset: () => void;
   isPending: boolean;
   isConfirming: boolean;
   isSuccess: boolean;
@@ -107,16 +169,65 @@ function VaultStateWarning({
 }) {
   // States: 0=IDLE, 1=ALERT, 2=EMERGENCY, 3=RELIEF_ACTIVE, 4=SETTLED
   const canCreateTask = currentState === 2 || currentState === 3;
+  const isSettled = currentState === 4;
   
   if (canCreateTask) {
     return (
       <div className="p-4 rounded-xl bg-green-500/20 border border-green-500/30">
-        <div className="flex items-center gap-3">
-          <CheckCircle2 className="h-5 w-5 text-green-400" />
-          <div>
-            <p className="text-green-400 font-medium">Vault Ready: {stateLabel}</p>
-            <p className="text-green-400/70 text-sm">Task creation is enabled</p>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <CheckCircle2 className="h-5 w-5 text-green-400" />
+            <div>
+              <p className="text-green-400 font-medium">Vault Ready: {stateLabel}</p>
+              <p className="text-green-400/70 text-sm">Task creation is enabled</p>
+            </div>
           </div>
+          
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={onSettle}
+            disabled={isPending || isConfirming}
+            className="border-green-500/30 hover:bg-green-500/20 text-green-400"
+          >
+            {isPending || isConfirming ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <XCircle className="h-4 w-4 mr-1" />
+            )}
+            Settle Emergency
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  if (isSettled) {
+    return (
+      <div className="p-4 rounded-xl bg-blue-500/20 border border-blue-500/30">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <CheckCircle2 className="h-5 w-5 text-blue-400" />
+            <div>
+              <p className="text-blue-400 font-medium">Vault State: {stateLabel}</p>
+              <p className="text-blue-400/70 text-sm">Emergency settled. Reset to allow new donations.</p>
+            </div>
+          </div>
+          
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={onReset}
+            disabled={isPending || isConfirming}
+            className="border-blue-500/30 hover:bg-blue-500/20 text-blue-400"
+          >
+            {isPending || isConfirming ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Zap className="h-4 w-4 mr-1" />
+            )}
+            Reset to IDLE
+          </Button>
         </div>
       </div>
     );
@@ -144,7 +255,7 @@ function VaultStateWarning({
           {isSuccess ? (
             <div className="flex items-center gap-2 text-green-400">
               <CheckCircle2 className="h-4 w-4" />
-              <span className="text-sm">Emergency declared!</span>
+              <span className="text-sm">Action Successful!</span>
             </div>
           ) : (
             <Button
@@ -157,7 +268,7 @@ function VaultStateWarning({
               {isPending || isConfirming ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-1 animate-spin" />
-                  {isPending ? "Confirming..." : "Declaring..."}
+                  {isPending ? "Confirming..." : "Processing..."}
                 </>
               ) : (
                 <>
@@ -460,6 +571,26 @@ export default function AdminTasksPage() {
     reset: resetEmergency,
   } = useDeclareEmergency();
 
+  // Settle emergency hook
+  const {
+    settleEmergency,
+    isPending: isSettling,
+    isConfirming: isConfirmingSettle,
+    isSuccess: settleSuccess,
+    error: settleError,
+    reset: resetSettle,
+  } = useSettleEmergency();
+
+  // Reset to idle hook
+  const {
+    resetToIdle,
+    isPending: isResetting,
+    isConfirming: isConfirmingReset,
+    isSuccess: resetSuccess,
+    error: resetError,
+    reset: resetReset,
+  } = useResetToIdle();
+
   // Handle declare emergency
   const handleDeclareEmergency = () => {
     declareEmergency(
@@ -469,16 +600,78 @@ export default function AdminTasksPage() {
     );
   };
 
-  // Refresh vault after emergency declared
+  // Brute force check IDs 1 to 10 to find active emergency
+  // (Since getEmergencyCount is missing in contract)
+  const SCAN_SIZE = 10;
+  const { data: emergenciesData, isLoading: isLoadingEmergencies } = useReadContracts({
+    contracts: Array.from({ length: SCAN_SIZE }, (_, i) => i + 1).map(id => ({
+      address: getCurrentDeployment().VAULT_ADDRESS as `0x${string}`,
+      abi: ABIS.ParametricVault,
+      functionName: "getEmergency",
+      args: [BigInt(id)],
+      chainId: CHAIN_ID,
+    })),
+    query: { refetchInterval: 5000 }
+  });
+
+  // Find active ID
+  const activeEmergencyId = (() => {
+    if (!emergenciesData) return undefined;
+    
+    // Check latest first (descending)
+    for (let i = SCAN_SIZE - 1; i >= 0; i--) {
+      const result = emergenciesData[i];
+      if (result.status === "success" && result.result) {
+        const emergency = result.result as any; // { isActive: boolean, ... }
+        if (emergency.isActive) return i + 1;
+      }
+    }
+    return undefined;
+  })();
+
+  // Debug hook
   useEffect(() => {
-    if (emergencySuccess) {
+    // console.log("Active Emergency Scan:", { activeEmergencyId, data: emergenciesData });
+  }, [activeEmergencyId, emergenciesData]);
+
+  // Handle settle emergency
+  const handleSettle = () => {
+    // Fallback to 1 if scan fails but we are sure we are in emergency state
+    const idToSettle = activeEmergencyId || 1;
+    
+    if (activeEmergencyId === undefined && isLoadingEmergencies) {
+       toast.info("Scanning for active emergency ID...");
+       // Don't return, let's try 1 as Hail Mary if user insists, 
+       // or maybe safer to wait? 
+       // Let's allow it but warn.
+    }
+
+    console.log("Settling ID:", idToSettle);
+    
+    try {
+      settleEmergency(idToSettle);
+    } catch (err: any) {
+      console.error("Settle error:", err);
+      toast.error(`Failed to initiate: ${err.message || "Unknown error"}`);
+    }
+  };
+
+  const handleReset = () => {
+    resetToIdle();
+  };
+
+  // Refresh vault after actions
+  useEffect(() => {
+    if (emergencySuccess || settleSuccess || resetSuccess) {
       const timer = setTimeout(() => {
         refetchVault();
-        resetEmergency();
+        if (emergencySuccess) resetEmergency();
+        if (settleSuccess) resetSettle();
+        if (resetSuccess) resetReset();
       }, 3000);
       return () => clearTimeout(timer);
     }
-  }, [emergencySuccess, refetchVault, resetEmergency]);
+  }, [emergencySuccess, settleSuccess, resetSuccess, refetchVault, resetEmergency, resetSettle, resetReset]);
 
   // Handle verify
   const handleVerify = (taskId: number) => {
@@ -574,10 +767,12 @@ export default function AdminTasksPage() {
         currentState={currentState}
         stateLabel={stateLabel}
         onDeclareEmergency={handleDeclareEmergency}
-        isPending={isDeclaringEmergency}
-        isConfirming={isConfirmingEmergency}
-        isSuccess={emergencySuccess}
-        error={emergencyError}
+        onSettle={handleSettle}
+        onReset={handleReset}
+        isPending={isDeclaringEmergency || isSettling || isResetting || isLoadingEmergencies}
+        isConfirming={isConfirmingEmergency || isConfirmingSettle || isConfirmingReset}
+        isSuccess={emergencySuccess || settleSuccess || resetSuccess}
+        error={emergencyError || settleError || resetError}
       />
 
       {/* Stats */}

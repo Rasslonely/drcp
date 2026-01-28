@@ -2,7 +2,7 @@
 
 import { useReadContract } from "wagmi";
 import { formatUnits } from "viem";
-import { VAULT_ADDRESS, PROJECT_TREASURY, CHAIN_ID } from "@/lib/contracts/deployments";
+import { VAULT_ADDRESS, PROJECT_TREASURY, MOCK_USDC_ADDRESS, CHAIN_ID } from "@/lib/contracts/deployments";
 import { Wallet, TrendingUp, Percent } from "lucide-react";
 
 // Minimal ABIs for the new functions
@@ -20,21 +20,6 @@ const PROTOCOL_FEE_ABI = [
     stateMutability: "view",
     inputs: [],
     outputs: [{ type: "uint256" }],
-  },
-] as const;
-
-const TREASURY_ABI = [
-  {
-    name: "getStats",
-    type: "function",
-    stateMutability: "view",
-    inputs: [],
-    outputs: [
-      { type: "uint256" },
-      { type: "uint256" },
-      { type: "uint256" },
-      { type: "uint256" },
-    ],
   },
 ] as const;
 
@@ -59,11 +44,20 @@ export function TreasuryStats() {
     chainId: CHAIN_ID,
   });
 
-  // Read treasury balance
-  const { data: treasuryStats, isLoading: isLoadingTreasury } = useReadContract({
-    address: PROJECT_TREASURY,
-    abi: TREASURY_ABI,
-    functionName: "getStats",
+  // Read treasury balance (Query USDC contract directly for robustness)
+  const { data: treasuryBalance, isLoading: isLoadingTreasury } = useReadContract({
+    address: MOCK_USDC_ADDRESS,
+    abi: [
+      {
+        name: "balanceOf",
+        type: "function",
+        stateMutability: "view",
+        inputs: [{ type: "address" }],
+        outputs: [{ type: "uint256" }],
+      },
+    ] as const,
+    functionName: "balanceOf",
+    args: [PROJECT_TREASURY],
     chainId: CHAIN_ID,
   });
 
@@ -81,15 +75,14 @@ export function TreasuryStats() {
   const feePercentage = Number(feeBps || BigInt(50)) / 100; // 50 -> 0.5%
   const totalCollectedFormatted = Number(formatUnits(totalFeesCollected as bigint || BigInt(0), 6)).toFixed(2);
   
-  // Treasury stats: [totalDonations, totalWithdrawn, currentBalance, donorCount]
-  const treasuryBalance = treasuryStats ? (treasuryStats as readonly bigint[])[2] : BigInt(0);
-  const treasuryBalanceFormatted = Number(formatUnits(treasuryBalance, 6)).toFixed(2);
+  // Treasury balance from raw USDC query
+  const treasuryBalanceFormatted = Number(formatUnits((treasuryBalance as bigint) || BigInt(0), 6)).toFixed(2);
 
   return (
     <div className="bg-gradient-to-br from-slate-800/80 to-slate-900/80 rounded-xl p-5 border border-slate-700/50">
       <h3 className="text-sm font-medium text-gray-400 mb-4 flex items-center gap-2">
         <Wallet className="h-4 w-4 text-emerald-400" />
-        Protocol Revenue
+        Platform Sustainability Fund
       </h3>
       
       <div className="grid grid-cols-3 gap-4">
@@ -117,15 +110,15 @@ export function TreasuryStats() {
         <div className="space-y-1">
           <div className="flex items-center gap-1 text-gray-500 text-xs">
             <Wallet className="h-3 w-3" />
-            Treasury
+            Current Balance
           </div>
           <p className="text-xl font-bold text-white">${treasuryBalanceFormatted}</p>
-          <p className="text-[10px] text-gray-500">Available</p>
+          <p className="text-[10px] text-gray-500">Available in treasury</p>
         </div>
       </div>
       
       <p className="text-[10px] text-gray-500 mt-4 pt-3 border-t border-slate-700">
-        Protocol fees sustain development, audits, and operations. Traditional charities take 15-30%.
+        The 0.5% sustainability fee ensures the protocol remains secure, audited, and maintained through DAO governance.
       </p>
     </div>
   );

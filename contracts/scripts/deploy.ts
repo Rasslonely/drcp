@@ -110,10 +110,23 @@ async function main() {
   const treasuryAddress = await treasury.getAddress();
   console.log("   ✅ ProjectTreasury deployed to:", treasuryAddress);
 
-  // ============ Deploy ParametricVault (with treasury) ============
+  // ============ Deploy ImpactNFT ============
+  console.log("\n5.6️⃣ Deploying ImpactNFT...");
+  const ImpactNFTFactory = await ethers.getContractFactory("ImpactNFT");
+  const impactNFT = await ImpactNFTFactory.deploy(deployer.address); // minter = deployer
+  await impactNFT.waitForDeployment();
+  const impactNFTAddress = await impactNFT.getAddress();
+  console.log("   ✅ ImpactNFT deployed to:", impactNFTAddress);
+
+  // ============ Deploy ParametricVault (with treasury & NFT) ============
   console.log("\n6️⃣ Deploying ParametricVault...");
   const VaultFactory = await ethers.getContractFactory("ParametricVault");
-  const vault = await VaultFactory.deploy(mockUsdcAddress, deployer.address, treasuryAddress);
+  const vault = await VaultFactory.deploy(
+    mockUsdcAddress, 
+    impactNFTAddress,
+    deployer.address, 
+    treasuryAddress
+  );
   await vault.waitForDeployment();
   const vaultAddress = await vault.getAddress();
   console.log("   ✅ ParametricVault deployed to:", vaultAddress);
@@ -125,14 +138,6 @@ async function main() {
   await vault.grantRole(daoRole, governorAddress);
   await vault.grantRole(daoRole, timelockAddress);
   console.log("   ✅ Governor and Timelock granted DAO_ROLE");
-
-  // ============ Deploy ImpactNFT ============
-  console.log("\n8️⃣ Deploying ImpactNFT...");
-  const ImpactNFTFactory = await ethers.getContractFactory("ImpactNFT");
-  const impactNFT = await ImpactNFTFactory.deploy(deployer.address); // minter = deployer
-  await impactNFT.waitForDeployment();
-  const impactNFTAddress = await impactNFT.getAddress();
-  console.log("   ✅ ImpactNFT deployed to:", impactNFTAddress);
 
   // ============ Initial Token Mint ============
   console.log("\n9️⃣ Minting initial token distribution...");

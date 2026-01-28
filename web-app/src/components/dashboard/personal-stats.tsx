@@ -180,7 +180,7 @@ export function PersonalStats() {
             icon={<DollarSign className="h-5 w-5 text-emerald-400" />}
             value={formatDonated(totalDonatedAmount)}
             label="Total Donated"
-            subLabel="Unified Funds"
+            subLabel="Includes 0.5% sustainability fee"
             color="bg-emerald-500/20"
             isLoading={isLoadingDonorStats}
             isRefreshing={isRefreshingDonorStats}

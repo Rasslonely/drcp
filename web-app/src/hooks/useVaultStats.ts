@@ -48,6 +48,12 @@ export function useVaultStats() {
         functionName: "activeCampaignCount",
         chainId: CHAIN_ID,
       },
+      {
+        address: vaultAddress,
+        abi: ABIS.ParametricVault,
+        functionName: "totalFeesCollected",
+        chainId: CHAIN_ID,
+      },
     ],
     query: {
       staleTime: 5000, // Frequent updates but allowed to be slightly stale for UI snappy-ness
@@ -60,12 +66,19 @@ export function useVaultStats() {
   // Parse RPC results - this is the PRIMARY source
   const rpcTotalDeposits = rpcData?.[0]?.result as bigint | undefined;
   const rpcVaultBalance = rpcData?.[1]?.result as bigint | undefined;
-  const currentState = rpcData?.[2]?.result as number | undefined;
+  const currentState = rpcData?.[2]?.result !== undefined ? Number(rpcData[2].result) : undefined;
   const activeCampaignCount = rpcData?.[3]?.result as bigint | undefined;
+  const totalFeesCollected = rpcData?.[4]?.result as bigint | undefined;
 
   // Use RPC data (instant) - NEVER use GraphQL for totalDeposits as it's delayed
   const totalDeposits = rpcTotalDeposits;
   const vaultBalance = rpcVaultBalance;
+
+  useEffect(() => {
+    if (rpcData) {
+      console.log(`[useVaultStats] RPC Sync: Deposits=${rpcTotalDeposits}, Balance=${rpcVaultBalance}, Fees=${totalFeesCollected}`);
+    }
+  }, [rpcData, rpcTotalDeposits, rpcVaultBalance, totalFeesCollected]);
 
   // Track last updated time
   useEffect(() => {
@@ -110,14 +123,20 @@ export function useVaultStats() {
     // Raw values (from RPC - instant)
     totalDeposits,
     vaultBalance,
-    releasedFunds,
+     releasedFunds,
+    totalFeesCollected,
     currentState,
-    activeCampaignCount,
+    activeCampaignCount: activeCampaignCount !== undefined ? Number(activeCampaignCount) : 0,
     
     // Formatted values (from RPC - instant)
-    totalDepositsFormatted: formatUSDC(totalDeposits),
+    totalDepositsFormatted: formatUSDC(
+      totalDeposits !== undefined && totalFeesCollected !== undefined 
+        ? totalDeposits + totalFeesCollected 
+        : totalDeposits
+    ),
     vaultBalanceFormatted: formatUSDC(vaultBalance),
     releasedFundsFormatted: formatUSDC(releasedFunds),
+    totalFeesCollectedFormatted: formatUSDC(totalFeesCollected),
     stateLabel: currentState !== undefined ? stateLabels[currentState] : "Unknown",
     utilization,
     

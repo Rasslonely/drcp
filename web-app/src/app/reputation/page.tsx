@@ -20,7 +20,9 @@ import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/ui/page-header";
 import { useAccount } from "wagmi";
 import { useImpact, TIER_CONFIG, Tier, useVolunteerLeaderboard } from "@/hooks";
-import { getAddressExplorerUrl, getExplorerName } from "@/lib/chain-utils";
+import { useAllTransactions } from "@/hooks/useEvents";
+import { getAddressExplorerUrl, getExplorerName, getNFTExplorerUrl, getTxExplorerUrl } from "@/lib/chain-utils";
+import { IMPACT_NFT_ADDRESS } from "@/lib/contracts/deployments";
 
 // Tier name mapping for display
 const TIER_NAMES: Record<Tier, string> = {
@@ -167,9 +169,16 @@ export default function ReputationPage() {
     totalRewardsFormatted,
     tierProgress,
     hasProfile,
+    tokenId,
     isLoading,
     isRefreshing,
   } = useImpact(address as `0x${string}` | undefined);
+  
+  // Fetch real activities for this volunteer from Subgraph (Payouts only for Reputation)
+  const { 
+    transactions, 
+    isLoading: isLoadingActivities 
+  } = useAllTransactions(address as string, 10, 'PAYOUT');
 
   // Fetch leaderboard from indexed events
   const { 
@@ -330,43 +339,63 @@ export default function ReputationPage() {
                     Recent Activity
                   </span>
                   <a
-                    href={getAddressExplorerUrl(address!)}
+                    href={tokenId ? getNFTExplorerUrl(IMPACT_NFT_ADDRESS, tokenId) : getAddressExplorerUrl(address!)}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-sm text-indigo-400 hover:text-indigo-300 flex items-center"
                   >
-                    View on-chain
+                    {tokenId ? "View NFT on-chain" : "View on-chain"}
                     <ExternalLink className="ml-1 h-4 w-4" />
                   </a>
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                {isLoading ? (
+                {isLoading || isLoadingActivities ? (
                   <div className="flex justify-center py-8">
                     <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
                   </div>
-                ) : !hasProfile ? (
+                ) : !hasProfile || transactions.length === 0 ? (
                   <div className="text-center py-8 text-gray-500">
                     <p>No activity yet</p>
                     <p className="text-sm mt-1">Complete tasks to see your history here</p>
                   </div>
                 ) : (
-                  <div className="text-center py-8 text-gray-400">
-                    <p className="text-sm">
-                      {tasksCompleted} task{tasksCompleted !== 1 ? "s" : ""} completed
+                  <div className="space-y-4">
+                    {transactions.map((tx) => (
+                      <div key={tx.id} className="flex items-center justify-between p-3 rounded-xl bg-white/5 hover:bg-white/10 transition-colors group">
+                        <div className="flex items-center space-x-3">
+                          <div className={`p-2 rounded-lg ${
+                            tx.type === 'volunteer_payout' ? 'bg-green-500/20 text-green-400' : 'bg-blue-500/20 text-blue-400'
+                          }`}>
+                            <Star className="h-4 w-4" />
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium text-white">
+                              {tx.type === 'volunteer_payout' ? 'Task Payout Received' : 'Donation Made'}
+                            </p>
+                            <p className="text-xs text-gray-400">
+                              {new Date(tx.timestamp * 1000).toLocaleDateString()}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="text-right flex items-center space-x-3">
+                          <div>
+                            <p className="text-sm font-bold text-white">{tx.amount}</p>
+                            <a 
+                              href={getTxExplorerUrl(tx.txHash)}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-xs text-indigo-400 hover:text-indigo-300 flex items-center justify-end"
+                            >
+                              TX <ExternalLink className="ml-1 h-3 w-3" />
+                            </a>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                    <p className="text-center text-[10px] text-gray-500 pt-2">
+                       Full history synchronized from Goldsky Subgraph
                     </p>
-                    <p className="text-xs text-gray-500 mt-2">
-                      Full activity history requires event indexing (Phase B)
-                    </p>
-                    <a
-                      href={`${getAddressExplorerUrl(address!)}#internaltx`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center mt-3 text-sm text-indigo-400 hover:text-indigo-300"
-                    >
-                      View transactions on {getExplorerName()}
-                      <ExternalLink className="ml-1 h-3 w-3" />
-                    </a>
                   </div>
                 )}
               </CardContent>

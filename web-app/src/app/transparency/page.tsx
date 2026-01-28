@@ -16,6 +16,7 @@ import { PageHeader } from "@/components/ui/page-header";
 import { SkeletonValue } from "@/components/ui/skeleton";
 import { useVaultStats, useTaskCount } from "@/hooks";
 import { VerificationBadge } from "@/components/transparency/verification-badge";
+import { TreasuryStats } from "@/components/transparency/treasury-stats";
 
 // Dynamically import heavy chart components (reduces initial bundle by ~400KB)
 const FundFlow = dynamic(
@@ -186,6 +187,15 @@ export default function TransparencyPage() {
             </Card>
           </motion.div>
         ))}
+      </motion.section>
+
+      {/* Protocol Treasury - Phase 11 Sustainability */}
+      <motion.section
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.12 }}
+      >
+        <TreasuryStats />
       </motion.section>
 
       {/* Fund Flow Diagram - Phase 9A */}

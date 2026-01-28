@@ -46,6 +46,7 @@ function getOrCreateVaultStats(): VaultStats {
     stats.campaignCount = BigInt.zero()
     stats.activeCampaignCount = BigInt.zero()
     stats.totalCampaignRaised = BigInt.zero()
+    stats.totalFeesCollected = BigInt.zero()
   }
   return stats
 }
@@ -76,7 +77,12 @@ function getOrCreateVolunteerStats(volunteer: Bytes): VolunteerStats {
 // ============ EVENT HANDLERS ============
 
 export function handleDeposited(event: DepositedEvent): void {
-  // Create immutable deposit record
+  // Calculate gross amount (net / 0.995)
+  // net = gross * 9950 / 10000 -> gross = net * 10000 / 9950
+  let grossAmount = event.params.amount.times(BigInt.fromI32(10000)).div(BigInt.fromI32(9950))
+  let feeAmount = grossAmount.minus(event.params.amount)
+
+  // Create immutable deposit record (using net for vault balance accuracy)
   let deposit = new Deposit(event.transaction.hash)
   deposit.donor = event.params.donor
   deposit.amount = event.params.amount
@@ -85,10 +91,10 @@ export function handleDeposited(event: DepositedEvent): void {
   deposit.transactionHash = event.transaction.hash
   deposit.save()
 
-  // Unified Ledger: FinancialActivity
+  // Unified Ledger: FinancialActivity (Use GROSS for user experience)
   let activity = new FinancialActivity(event.transaction.hash)
   activity.type = "DEPOSIT"
-  activity.amount = event.params.amount
+  activity.amount = grossAmount
   activity.donor = event.params.donor
   activity.blockNumber = event.block.number
   activity.blockTimestamp = event.block.timestamp
@@ -98,12 +104,13 @@ export function handleDeposited(event: DepositedEvent): void {
   // Update vault stats
   let vaultStats = getOrCreateVaultStats()
   vaultStats.totalDeposits = vaultStats.totalDeposits.plus(event.params.amount)
+  vaultStats.totalFeesCollected = vaultStats.totalFeesCollected.plus(feeAmount)
   vaultStats.depositCount = vaultStats.depositCount.plus(BigInt.fromI32(1))
   vaultStats.save()
 
   // Update donor stats
   let donorStats = getOrCreateDonorStats(event.params.donor)
-  donorStats.totalDonated = donorStats.totalDonated.plus(event.params.amount)
+  donorStats.totalDonated = donorStats.totalDonated.plus(grossAmount)
   donorStats.depositCount = donorStats.depositCount.plus(BigInt.fromI32(1))
   donorStats.save()
 }
@@ -286,7 +293,11 @@ export function handleCampaignCreated(event: CampaignCreatedEvent): void {
 }
 
 export function handleCampaignDeposit(event: CampaignDepositEvent): void {
-  // Create immutable campaign deposit record
+  // Calculate gross amount (net / 0.995)
+  let grossAmount = event.params.amount.times(BigInt.fromI32(10000)).div(BigInt.fromI32(9950))
+  let feeAmount = grossAmount.minus(event.params.amount)
+
+  // Create immutable campaign deposit record (net)
   let deposit = new CampaignDeposit(event.transaction.hash)
   deposit.campaign = event.params.campaignId.toString()
   deposit.donor = event.params.donor
@@ -296,10 +307,10 @@ export function handleCampaignDeposit(event: CampaignDepositEvent): void {
   deposit.transactionHash = event.transaction.hash
   deposit.save()
 
-  // Unified Ledger: FinancialActivity
+  // Unified Ledger: FinancialActivity (GROSS)
   let activity = new FinancialActivity(event.transaction.hash)
   activity.type = "CAMPAIGN_DEPOSIT"
-  activity.amount = event.params.amount
+  activity.amount = grossAmount
   activity.donor = event.params.donor
   activity.campaign = event.params.campaignId.toString()
   activity.blockNumber = event.block.number
@@ -319,13 +330,14 @@ export function handleCampaignDeposit(event: CampaignDepositEvent): void {
   // Update vault stats
   let vaultStats = getOrCreateVaultStats()
   vaultStats.totalDeposits = vaultStats.totalDeposits.plus(event.params.amount)
+  vaultStats.totalFeesCollected = vaultStats.totalFeesCollected.plus(feeAmount)
   vaultStats.totalCampaignRaised = vaultStats.totalCampaignRaised.plus(event.params.amount)
   vaultStats.depositCount = vaultStats.depositCount.plus(BigInt.fromI32(1))
   vaultStats.save()
 
   // Update donor stats
   let donorStats = getOrCreateDonorStats(event.params.donor)
-  donorStats.totalDonated = donorStats.totalDonated.plus(event.params.amount)
+  donorStats.totalDonated = donorStats.totalDonated.plus(grossAmount)
   donorStats.depositCount = donorStats.depositCount.plus(BigInt.fromI32(1))
   donorStats.save()
 }

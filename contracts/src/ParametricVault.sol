@@ -6,6 +6,7 @@ import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/utils/Pausable.sol";
+import "./ImpactNFT.sol";
 
 /**
  * @title ParametricVault
@@ -101,6 +102,7 @@ contract ParametricVault is AccessControl, ReentrancyGuard, Pausable {
 
     // ============ State Variables ============
     IERC20 public immutable stablecoin;
+    ImpactNFT public immutable impactNFT;
     VaultState public currentState;
     RiskScore public latestRiskScore;
     
@@ -193,12 +195,19 @@ contract ParametricVault is AccessControl, ReentrancyGuard, Pausable {
     /**
      * @notice Initializes the ParametricVault
      * @param _stablecoin Address of the accepted stablecoin (USDC/USDT)
+     * @param _impactNFT Address of the ImpactNFT contract
      * @param _admin Initial admin address
      * @param _treasury Address to receive protocol fees
      */
-    constructor(address _stablecoin, address _admin, address _treasury) {
+    constructor(
+        address _stablecoin, 
+        address _impactNFT, 
+        address _admin, 
+        address _treasury
+    ) {
         if (_treasury == address(0)) revert InvalidTreasury();
         stablecoin = IERC20(_stablecoin);
+        impactNFT = ImpactNFT(_impactNFT);
         treasury = _treasury;
         currentState = VaultState.IDLE;
         
@@ -520,6 +529,18 @@ contract ParametricVault is AccessControl, ReentrancyGuard, Pausable {
         volunteerEarnings[task.volunteer] += task.reward;
         totalTaskPayouts += task.reward;
         totalReleased += task.reward;
+        
+        // MINT IMPACT NFT & RECORD REPUTATION
+        try impactNFT.recordImpact(
+            task.volunteer,
+            task.proofHash,
+            task.id,
+            task.reward
+        ) {
+            // Success - NFT minted/updated
+        } catch {
+            // Silently fail if NFT minting fails to avoid blocking payment
+        }
         
         task.status = TaskStatus.PAID;
         

@@ -28,7 +28,7 @@ const TIME_RANGES: Record<TimeRange, { label: string; hours: number; interval: n
 function formatUSD(value: number): string {
   if (value >= 1_000_000) return `$${(value / 1_000_000).toFixed(2)}M`;
   if (value >= 1_000) return `$${(value / 1_000).toFixed(1)}k`;
-  return `$${value.toFixed(0)}`;
+  return `$${value.toFixed(2)}`;
 }
 
 function formatDateLabel(timestamp: number, range: TimeRange): string {
@@ -71,15 +71,22 @@ export function useTVLHistory(initialRange: TimeRange = "7d") {
   // and convert to event format 
   const events = useMemo(() => {
     return (activities || [])
-      .filter(a => a.type === 'DEPOSIT' || a.type === 'CAMPAIGN_DEPOSIT')
-      .map(a => ({
-        donor: a.donor || '0x0000',
-        amount: a.amount,
-        amountFormatted: a.amountFormatted,
-        timestamp: a.timestamp,
-        txHash: a.txHash,
-        blockNumber: BigInt(0), // Activities use timestamp for sorting
-      }));
+      .filter(a => ['DEPOSIT', 'CAMPAIGN_DEPOSIT', 'WITHDRAWAL', 'PAYOUT'].includes(a.type))
+      .map(a => {
+        let amt = a.amount;
+        // Make withdrawals and payouts negative for TVL calculation
+        if (a.type === 'WITHDRAWAL' || a.type === 'PAYOUT') {
+           amt = BigInt(-1) * BigInt(a.amount); 
+        }
+        return {
+          donor: a.donor || '0x0000',
+          amount: amt,
+          amountFormatted: a.amountFormatted,
+          timestamp: a.timestamp,
+          txHash: a.txHash,
+          blockNumber: BigInt(0),
+        };
+      });
   }, [activities]);
 
   // Refresh handler

@@ -1,6 +1,6 @@
 import { createAppKit } from '@reown/appkit-react-native';
 import { WagmiAdapter } from '@reown/appkit-wagmi-react-native';
-import { polygonAmoy } from '@reown/appkit/networks';
+import { liskSepolia } from '@reown/appkit/networks';
 import { useAccount, useReadContract, useWriteContract } from 'wagmi';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -9,7 +9,7 @@ const projectId = 'c57ca95b47569778a828d19178114f4d'; // Test ID
 
 // 2. Create Adapter
 export const wagmiAdapter = new WagmiAdapter({
-  networks: [polygonAmoy],
+  networks: [liskSepolia],
   projectId,
 });
 
@@ -39,7 +39,7 @@ const appKitStorage = {
 // 3. Create AppKit
 createAppKit({
   adapters: [wagmiAdapter],
-  networks: [polygonAmoy],
+  networks: [liskSepolia],
   projectId,
   metadata: {
     name: 'DisasterProtocol',

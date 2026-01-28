@@ -8,7 +8,7 @@ dataSources:
     name: ParametricVault
     network: lisk-sepolia-testnet
     source:
-      address: "0x4Dd3ec9705820Bf0635fb90b2ff1BC06e0b441a7"
+      address: "0x6e1cA331F1f701d7B24f7367f5c8A9D07EeEc518"
       abi: ParametricVault
       startBlock: 31720000
     mapping:
@@ -80,3 +80,26 @@ dataSources:
         - event: DelegateVotesChanged(indexed address,uint256,uint256)
           handler: handleDelegateVotesChanged
       file: RescueToken\RescueToken.wasm
+  - kind: ethereum
+    name: ImpactNFT
+    network: lisk-sepolia-testnet
+    source:
+      address: "0x7D1E0D4C089c6FC1F4500f6C98365DDA6D316E8B"
+      abi: ImpactNFT
+      startBlock: 31720000
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      entities:
+        - Impact
+        - TierUpgrade
+      abis:
+        - name: ImpactNFT
+          file: ImpactNFT\abis\ImpactNFT.json
+      eventHandlers:
+        - event: ImpactRecorded(indexed address,uint256,uint256,uint256,uint8)
+          handler: handleImpactRecorded
+        - event: TierUpgrade(indexed address,uint8,uint8)
+          handler: handleTierUpgrade
+      file: ImpactNFT\ImpactNFT.wasm

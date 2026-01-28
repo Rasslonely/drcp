@@ -3,7 +3,7 @@ import { ApolloClient, InMemoryCache, HttpLink } from '@apollo/client';
 // Graph Studio Subgraph URL - DRCP on Lisk Sepolia via Goldsky
 // M-03 Audit Note: Always set NEXT_PUBLIC_SUBGRAPH_URL in production .env
 const SUBGRAPH_URL = process.env.NEXT_PUBLIC_SUBGRAPH_URL || 
-  'https://api.goldsky.com/api/public/project_cmk5jyye523yo01ya60379ew7/subgraphs/drcp-lisk/v2/gn';
+  'https://api.goldsky.com/api/public/project_cmk5jyye523yo01ya60379ew7/subgraphs/drcp-lisk/v4/gn';
 
 // M-03 Audit Fix: Warn if using fallback URL
 if (!process.env.NEXT_PUBLIC_SUBGRAPH_URL && typeof window !== "undefined") {

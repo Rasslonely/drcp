@@ -24,11 +24,13 @@ export const TIER_CONFIG = {
 };
 
 export interface ImpactProfile {
-  reputation: bigint;
-  tier: Tier;
   tasksCompleted: bigint;
+  reputation: bigint;
   totalRewards: bigint;
-  lastActive: bigint;
+  firstTaskAt: bigint;
+  lastTaskAt: bigint;
+  tier: Tier;
+  metadataCID: string;
 }
 
 /**
@@ -45,7 +47,20 @@ export function useImpact(volunteerAddress: `0x${string}` | undefined) {
     chainId: CHAIN_ID,
     query: {
       enabled: !!volunteerAddress,
-      staleTime: 60000, // Impact data changes infrequently
+      staleTime: 60000,
+    },
+  });
+
+  // Get tokenId
+  const { data: tokenId } = useReadContract({
+    address: deployment.ImpactNFT as `0x${string}`,
+    abi: ABIS.ImpactNFT,
+    functionName: "volunteerToTokenId",
+    args: volunteerAddress ? [volunteerAddress] : undefined,
+    chainId: CHAIN_ID,
+    query: {
+      enabled: !!volunteerAddress,
+      staleTime: 60000,
     },
   });
 
@@ -110,7 +125,9 @@ export function useImpact(volunteerAddress: `0x${string}` | undefined) {
     tier: profile?.tier as Tier | undefined,
     tasksCompleted: profile ? Number(profile.tasksCompleted) : 0,
     totalRewards: profile?.totalRewards,
-    lastActive: profile?.lastActive,
+    lastTaskAt: profile?.lastTaskAt,
+    tokenId: tokenId as bigint | undefined,
+    metadataCID: profile?.metadataCID,
     
     // Formatted values
     reputationFormatted,

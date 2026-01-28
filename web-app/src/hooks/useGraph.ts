@@ -111,6 +111,7 @@ const GET_VAULT_STATS = gql`
       campaignCount
       activeCampaignCount
       totalCampaignRaised
+      totalFeesCollected
     }
   }
 `;
@@ -184,6 +185,7 @@ export interface GraphVaultStats {
   campaignCount: string;
   activeCampaignCount: string;
   totalCampaignRaised: string;
+  totalFeesCollected: string;
 }
 
 export interface GraphDonorStats {
@@ -320,9 +322,17 @@ export function useDepositsGraph(donor?: string, limit = 50) {
 /**
  * Fetch unified financial activities from The Graph
  */
-export function useActivitiesGraph(filters?: { donor?: string; campaign?: string; type?: string }, limit = 50) {
+export function useActivitiesGraph(filters?: { account?: string; donor?: string; volunteer?: string; campaign?: string; type?: string }, limit = 50) {
   const where: any = {};
-  if (filters?.donor) where.donor = filters.donor.toLowerCase();
+  
+  if (filters?.account) {
+    // Some graph nodes prefer explicit fields over complex OR queries
+    where.donor = filters.account.toLowerCase();
+  } else {
+    if (filters?.donor) where.donor = filters.donor.toLowerCase();
+    if (filters?.volunteer) where.volunteer = filters.volunteer.toLowerCase();
+  }
+  
   if (filters?.campaign) where.campaign = filters.campaign;
   if (filters?.type) where.type = filters.type;
 
@@ -334,8 +344,17 @@ export function useActivitiesGraph(filters?: { donor?: string; campaign?: string
         first: limit, 
         skip: 0 
       },
+      fetchPolicy: 'network-only' // Ensure we get fresh data
     }
   );
+
+  if (error) {
+    console.error("[useActivitiesGraph] GraphQL Error:", error);
+  }
+
+  if (data) {
+    console.log(`[useActivitiesGraph] Loaded ${data.financialActivities.length} activities for:`, where);
+  }
 
   const activities = (data?.financialActivities || []).map(formatActivity);
 
@@ -361,9 +380,9 @@ export function useVaultStatsGraph() {
 
   const stats = data?.vaultStats;
   const formatted = stats ? {
-    totalDeposits: `$${Number(formatUnits(BigInt(stats.totalDeposits), 6)).toLocaleString()}`,
-    totalWithdrawals: `$${Number(formatUnits(BigInt(stats.totalWithdrawals), 6)).toLocaleString()}`,
-    totalTaskPayouts: `$${Number(formatUnits(BigInt(stats.totalTaskPayouts), 6)).toLocaleString()}`,
+    totalDeposits: `$${Number(formatUnits(BigInt(stats.totalDeposits) + BigInt(stats.totalFeesCollected || '0'), 6)).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+    totalWithdrawals: `$${Number(formatUnits(BigInt(stats.totalWithdrawals), 6)).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+    totalTaskPayouts: `$${Number(formatUnits(BigInt(stats.totalTaskPayouts), 6)).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
     depositCount: Number(stats.depositCount),
     completedTaskCount: Number(stats.completedTaskCount),
     emergencyCount: Number(stats.emergencyCount),

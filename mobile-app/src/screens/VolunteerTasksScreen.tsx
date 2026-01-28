@@ -25,7 +25,7 @@ const getTypeFromDesc = (desc: string) => {
     return "rescue";
 };
 
-export default function VolunteerTasksScreen() {
+export default function VolunteerTasksScreen({ navigation }: any) {
   const { isConnected } = useAccount();
   const { open } = useAppKit();
   const { tasks, isLoading, refetch } = useTasks();
@@ -121,10 +121,29 @@ export default function VolunteerTasksScreen() {
           </View>
         </View>
 
-        {/* Claim Button */}
+        {/* Claim/Submit Proof Button */}
         {isClaimed ? (
-          <View style={styles.acceptedBanner}>
-             <Text style={styles.acceptedText}>Status: {item.status}</Text>
+          <View style={styles.claimedActions}>
+             {item.status === 1 ? ( // 1 = CLAIMED
+                <TouchableOpacity
+                    style={styles.submitProofButton}
+                    onPress={() => {
+                        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                        // @ts-ignore
+                        navigation.navigate("Proof", { taskId: item.id.toString() });
+                    }}
+                >
+                    <Ionicons name="camera" size={18} color="#fff" />
+                    <Text style={styles.submitProofButtonText}>Submit Proof</Text>
+                </TouchableOpacity>
+             ) : (
+                <View style={styles.acceptedBanner}>
+                    <Ionicons name="checkmark-circle" size={18} color="#22c55e" />
+                    <Text style={styles.acceptedText}>
+                        {item.status === 2 ? "Proof Pending" : item.status === 3 ? "Verified" : "Paid"}
+                    </Text>
+                </View>
+             )}
           </View>
         ) : (
           <TouchableOpacity
@@ -322,5 +341,22 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     fontSize: 16,
     marginLeft: 8,
+  },
+  claimedActions: {
+    marginTop: 8,
+  },
+  submitProofButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#22c55e",
+    paddingVertical: 12,
+    borderRadius: 12,
+    gap: 8,
+  },
+  submitProofButtonText: {
+    color: "#fff",
+    fontWeight: "600",
+    fontSize: 16,
   },
 });

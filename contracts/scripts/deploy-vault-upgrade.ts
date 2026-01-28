@@ -13,9 +13,10 @@ import { ethers, network } from "hardhat";
 // These are already deployed and will be reused
 const EXISTING = {
   MOCK_USDC: "0xc8f823d7FbE14d950b188F961aaD53b88E9ddfB8",
-  PROJECT_TREASURY: "0xd861026738CD681890438ED4349b684E9f0113A7",
+  PROJECT_TREASURY: "0xD9207383699f4f7AeB1C8f8f72318aA67f322649",
   GOVERNOR: "0x8fA50988f36af835de40153E871689148aE54E49",
   TIMELOCK: "0xb38c87D42AA5fbF778e1093c61D5e4a010996EB0",
+  IMPACT_NFT: "0x7D1E0D4C089c6FC1F4500f6C98365DDA6D316E8B",
   // Old vault (for reference)
   OLD_VAULT: "0x95A3AC8Cd6A09CD057692f8ee16869734E02CB9E",
 };
@@ -36,6 +37,7 @@ async function main() {
   const VaultFactory = await ethers.getContractFactory("ParametricVault");
   const vault = await VaultFactory.deploy(
     EXISTING.MOCK_USDC,
+    EXISTING.IMPACT_NFT,
     deployer.address,
     EXISTING.PROJECT_TREASURY
   );

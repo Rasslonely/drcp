@@ -134,13 +134,13 @@ export default function SupportPage() {
                 to make disaster relief more transparent using blockchain technology.
               </p>
               <p>
-                Unlike disaster relief donations (which go 100% to victims), 
+                Unlike disaster relief donations (which go 100% to victims, excluding the small automated protocol fee for platform sustainability), 
                 <strong className="text-amber-400"> support here goes directly to me</strong> - 
                 to keep building, pay bills, and fuel my coffee addiction. ☕
               </p>
               <p className="text-xs text-gray-500">
                 I believe in being transparent about how your support is used.
-                No hidden fees, no corporate overhead - just one developer doing their best.
+                This tip jar is strictly voluntary and independent from the protocol treasury.
               </p>
             </CardContent>
           </Card>

@@ -119,10 +119,11 @@ export function FundFlow() {
 
   // Node positions (horizontal layout - wider spacing)
   const positions = {
-    donors: { x: 0, y: 90 },
-    vault: { x: 250, y: 90 },
-    relief: { x: 500, y: 45 },
-    volunteers: { x: 500, y: 145 },
+    donors: { x: 0, y: 125 },
+    vault: { x: 250, y: 200 },
+    treasury: { x: 250, y:50 },
+    relief: { x: 500, y: 125 },
+    volunteers: { x: 500, y: 275 },
   };
 
   // Find node data
@@ -149,10 +150,10 @@ export function FundFlow() {
         <div className="w-full overflow-x-auto scrollbar-hide">
           <div className="min-w-[520px] md:min-w-0 mx-auto" style={{ maxWidth: "700px" }}>
             <svg
-              viewBox="-50 0 600 220"
+              viewBox="-50 0 600 350"
               className="w-full h-auto"
               preserveAspectRatio="xMidYMid meet"
-              style={{ minHeight: "180px", maxHeight: "280px" }}
+              style={{ minHeight: "280px", maxHeight: "380px" }}
             >
             {/* Definitions */}
             <defs>
@@ -170,6 +171,10 @@ export function FundFlow() {
                 <stop offset="0%" stopColor="#10B981" />
                 <stop offset="100%" stopColor="#6366F1" />
               </linearGradient>
+              <linearGradient id="gradient-donors-treasury" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stopColor="#10B981" />
+                <stop offset="100%" stopColor="#F472B6" />
+              </linearGradient>
               <linearGradient id="gradient-vault-relief" x1="0%" y1="0%" x2="100%" y2="0%">
                 <stop offset="0%" stopColor="#6366F1" />
                 <stop offset="100%" stopColor="#F59E0B" />
@@ -184,7 +189,7 @@ export function FundFlow() {
             <motion.path
               id="path-donors-vault"
               d={`M ${positions.donors.x + 32} ${positions.donors.y} 
-                  Q ${(positions.donors.x + positions.vault.x) / 2} ${positions.donors.y - 20} 
+                  Q ${(positions.donors.x + positions.vault.x) / 2} ${positions.donors.y + 20} 
                   ${positions.vault.x - 32} ${positions.vault.y}`}
               fill="none"
               stroke="url(#gradient-donors-vault)"
@@ -193,6 +198,21 @@ export function FundFlow() {
               initial={{ pathLength: 0 }}
               animate={{ pathLength: 1 }}
               transition={{ duration: 1.5, ease: "easeInOut" }}
+            />
+
+            {/* Donors -> Treasury */}
+            <motion.path
+                id="path-donors-treasury"
+                d={`M ${positions.donors.x + 32} ${positions.donors.y - 10} 
+                Q ${(positions.donors.x + positions.treasury.x) / 2} ${positions.treasury.y + 20} 
+                ${positions.treasury.x - 32} ${positions.treasury.y}`}
+                fill="none"
+                stroke="url(#gradient-donors-treasury)"
+                strokeWidth="2"
+                strokeOpacity="0.4"
+                initial={{ pathLength: 0 }}
+                animate={{ pathLength: 1 }}
+                transition={{ duration: 1.5, ease: "easeInOut", delay: 0.2 }}
             />
 
             {/* Vault -> Relief */}
@@ -235,22 +255,16 @@ export function FundFlow() {
                   color="#10B981"
                 />
                 <FlowingParticle
-                  pathId="path-donors-vault"
-                  delay={1.2}
-                  duration={2}
-                  color="#34D399"
+                    pathId="path-donors-treasury"
+                    delay={0.8}
+                    duration={2.5}
+                    color="#F472B6"
                 />
                 <FlowingParticle
                   pathId="path-vault-relief"
                   delay={0.5}
                   duration={2}
                   color="#6366F1"
-                />
-                <FlowingParticle
-                  pathId="path-vault-relief"
-                  delay={1.8}
-                  duration={2}
-                  color="#F59E0B"
                 />
                 <FlowingParticle
                   pathId="path-vault-volunteers"
@@ -286,6 +300,18 @@ export function FundFlow() {
               />
             )}
 
+            {getNode("treasury") && (
+                <FlowNode
+                    x={positions.treasury.x}
+                    y={positions.treasury.y}
+                    icon={getNode("treasury")!.icon}
+                    label={getNode("treasury")!.label}
+                    value={getNode("treasury")!.valueFormatted}
+                    color={getNode("treasury")!.color}
+                    index={1.5}
+                />
+            )}
+
             {getNode("relief") && (
               <FlowNode
                 x={positions.relief.x}
@@ -316,7 +342,7 @@ export function FundFlow() {
                 x="-50"
                 y="0"
                 width="600"
-                height="220"
+                height="520"
                 fill="rgba(0,0,0,0.3)"
                 rx="8"
               />
@@ -334,6 +360,10 @@ export function FundFlow() {
           <div className="flex items-center gap-1">
             <div className="h-2 w-2 rounded-full bg-indigo-500" />
             <span>Secured in Vault</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <div className="h-2 w-2 rounded-full bg-pink-400" />
+            <span>Sustainability Fund</span>
           </div>
           <div className="flex items-center gap-1">
             <div className="h-2 w-2 rounded-full bg-amber-500" />

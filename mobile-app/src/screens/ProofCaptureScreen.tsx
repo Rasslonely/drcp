@@ -12,14 +12,37 @@ import * as Location from "expo-location";
 import * as Haptics from "expo-haptics";
 import { Ionicons } from "@expo/vector-icons";
 
-export default function ProofCaptureScreen() {
+import { useSubmitProof } from "../hooks/useContracts";
+import { uploadToPinata } from "../services/pinata";
+import { keccak256, toHex } from "viem";
+
+export default function ProofCaptureScreen({ route, navigation }: any) {
+  // Get taskId from navigation parameters (fallback to 1 for demo if not provided)
+  const taskIdParam = route.params?.taskId;
+  const taskId = taskIdParam ? BigInt(taskIdParam) : undefined;
+
   const [facing, setFacing] = useState<CameraType>("back");
   const [permission, requestPermission] = useCameraPermissions();
   const [photo, setPhoto] = useState<string | null>(null);
   const [location, setLocation] = useState<Location.LocationObject | null>(null);
+  const [statusMessage, setStatusMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const cameraRef = useRef<any>(null);
+
+  const { submit, isSuccess: isContractSuccess, error: contractError } = useSubmitProof();
+
+  useEffect(() => {
+    if (isContractSuccess) {
+      setIsSubmitting(false);
+      setIsSubmitted(true);
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    }
+    if (contractError) {
+      setIsSubmitting(false);
+      Alert.alert("Submission Error", (contractError as any).shortMessage || contractError.message || "Failed to submit to contract");
+    }
+  }, [isContractSuccess, contractError]);
 
   useEffect(() => {
     (async () => {
@@ -77,15 +100,34 @@ export default function ProofCaptureScreen() {
       return;
     }
 
+    if (!taskId) {
+        Alert.alert("Missing Task", "Please select a task from the list before submitting proof.");
+        navigation.navigate("Tasks");
+        return;
+    }
+
     setIsSubmitting(true);
+    setStatusMessage("Uploading to IPFS...");
     await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
 
-    // Simulate API submission
-    setTimeout(() => {
-      setIsSubmitting(false);
-      setIsSubmitted(true);
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    }, 2000);
+    try {
+        // 1. Upload to Pinata
+        const cid = await uploadToPinata(photo, `task-${taskId}-proof.jpg`);
+        console.log("Uploaded to IPFS. CID:", cid);
+        
+        setStatusMessage("Confirming on-chain...");
+
+        // 2. Hash the CID (as required by current contract ABI - bytes32 proofHash)
+        const proofHash = keccak256(toHex(cid)) as `0x${string}`;
+
+        // 3. Call contract
+        submit(taskId, proofHash);
+        
+    } catch (error: any) {
+        console.error("Submission failed:", error);
+        Alert.alert("Error", error.message || "Failed to submit proof");
+        setIsSubmitting(false);
+    }
   };
 
   if (isSubmitted) {
@@ -99,6 +141,12 @@ export default function ProofCaptureScreen() {
             blockchain.
           </Text>
           <View style={styles.proofDetails}>
+            <View style={styles.proofDetailRow}>
+              <Ionicons name="barcode" size={20} color="#6366f1" />
+              <Text style={styles.proofDetailText}>
+                Task ID: #{taskId?.toString()}
+              </Text>
+            </View>
             <View style={styles.proofDetailRow}>
               <Ionicons name="location" size={20} color="#6366f1" />
               <Text style={styles.proofDetailText}>
@@ -118,9 +166,10 @@ export default function ProofCaptureScreen() {
             onPress={() => {
               setPhoto(null);
               setIsSubmitted(false);
+              navigation.navigate("Tasks");
             }}
           >
-            <Text style={styles.newProofButtonText}>Submit Another Proof</Text>
+            <Text style={styles.newProofButtonText}>Back to Tasks</Text>
           </TouchableOpacity>
         </View>
       </View>

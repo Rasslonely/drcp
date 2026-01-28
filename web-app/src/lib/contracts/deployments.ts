@@ -16,16 +16,15 @@ export const DEPLOYMENTS = {
     RescueToken: "0x4080ACE95cf319c40F952D2dCCE21b070270f14d" as `0x${string}`,
     DRCPTimelock: "0xb38c87D42AA5fbF778e1093c61D5e4a010996EB0" as `0x${string}`,
     DRCPGovernor: "0x8fA50988f36af835de40153E871689148aE54E49" as `0x${string}`,
-    ImpactNFT: "0xb2752B174d4e5d5e88Ef243d2Bb11256Efe3b4BA" as `0x${string}`, // Not deployed (optional)
+    ImpactNFT: "0x7D1E0D4C089c6FC1F4500f6C98365DDA6D316E8B" as `0x${string}`,
     MOCK_USDC_ADDRESS: "0xc8f823d7FbE14d950b188F961aaD53b88E9ddfB8" as `0x${string}`,
-    VAULT_ADDRESS: "0x4Dd3ec9705820Bf0635fb90b2ff1BC06e0b441a7" as `0x${string}`, // v2 with 0.5% protocol fee
-    PROJECT_TREASURY: "0xd861026738CD681890438ED4349b684E9f0113A7" as `0x${string}`, // Not deployed (optional)
+    VAULT_ADDRESS: "0x6e1cA331F1f701d7B24f7367f5c8A9D07EeEc518" as `0x${string}`, // v2 with 0.5% protocol fee + NFT Fix
+    PROJECT_TREASURY: "0xD9207383699f4f7AeB1C8f8f72318aA67f322649" as `0x${string}`, // Protocol Treasury
     YIELD_CONTROLLER: "0x6e8Ff4Ffe11Cf25bc24c9a42DE64cE7eC0458fdE" as `0x${string}`, // Not deployed (optional)
-    CREATOR_WALLET: "0x5f80439206742Ac04e031665d1DFEDe11C9730aD" as `0x${string}`,
+    CREATOR_WALLET: "0xB8735c09D3D78Bcb4cA54E4cc753A07A40F87d96" as `0x${string}`,
   },
 
   // Polygon Amoy Testnet (Chain ID: 80002)
-  // Current development deployment
   amoy: {
     RescueToken: "0xa5247E2e494186EAe1Df1e2e747C3c920D8AC7a9" as `0x${string}`,
     DRCPTimelock: "0x29Ee8D37C05224485b91349C449620318438352C" as `0x${string}`,

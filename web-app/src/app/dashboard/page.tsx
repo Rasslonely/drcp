@@ -120,7 +120,8 @@ function TasksWidget({ address }: { address?: string }) {
   const { myTasks, claimedTasks } = useMyTasks(address as `0x${string}` | undefined);
 
   const previewTasks = openTasks.slice(0, 3);
-  const hasActiveTasks = claimedTasks.length > 0;
+  const userActiveTasks = myTasks.filter(t => t.isClaimed || t.isPending);
+  const hasActiveTasks = userActiveTasks.length > 0;
 
   return (
     <Card variant="glass">
@@ -143,14 +144,14 @@ function TasksWidget({ address }: { address?: string }) {
           </Link>
         </div>
 
-        {/* Active Tasks Banner */}
+        {/* Active Tasks Banner (Shown if user has claimed or pending tasks) */}
         {hasActiveTasks && (
           <div className="mb-4 p-3 rounded-lg bg-blue-500/10 border border-blue-500/20">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Hand className="h-4 w-4 text-blue-400" />
                 <span className="text-sm text-blue-300">
-                  You have {claimedTasks.length} active task{claimedTasks.length > 1 ? "s" : ""}
+                  You have {userActiveTasks.length} active task{userActiveTasks.length > 1 ? "s" : ""}
                 </span>
               </div>
               <Link href="/tasks">
@@ -169,11 +170,12 @@ function TasksWidget({ address }: { address?: string }) {
               <div key={i} className="h-14 rounded-lg bg-white/5 animate-pulse" />
             ))}
           </div>
-        ) : previewTasks.length > 0 ? (
+        ) : previewTasks.length > 0 || userActiveTasks.length > 0 ? (
           <div className="space-y-2">
-            {previewTasks.map((task) => (
+            {/* Show up to 3 tasks, prioritizing user's active/recent ones */}
+            {[...userActiveTasks, ...openTasks].slice(0, 3).map((task) => (
               <div
-                key={Number(task.id)}
+                key={`${task.id}-${task.status}`}
                 className="flex items-center justify-between p-3 rounded-lg bg-white/5 border border-white/10 hover:border-white/20 transition-colors"
               >
                 <div className="flex items-center gap-3 min-w-0">
@@ -185,6 +187,9 @@ function TasksWidget({ address }: { address?: string }) {
                     <div className="flex items-center gap-1 text-xs text-gray-500">
                       <Clock className="h-3 w-3" />
                       <span>{task.createdAtDate.toLocaleDateString()}</span>
+                      {task.volunteer.toLowerCase() === address?.toLowerCase() && (
+                        <span className="ml-1 text-indigo-400 font-medium">· You</span>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -199,8 +204,12 @@ function TasksWidget({ address }: { address?: string }) {
         ) : (
           <div className="text-center py-6 text-gray-500">
             <CheckCircle2 className="h-8 w-8 mx-auto mb-2 text-gray-600" />
-            <p className="text-sm">No open tasks available</p>
-            <p className="text-xs text-gray-600">Check back later for opportunities</p>
+            <p className="text-sm">No new tasks available</p>
+            <p className="text-xs text-gray-600">
+              {myTasks.length > 0 
+                ? `You've completed ${myTasks.filter(t => t.isCompleted).length} task(s) already!` 
+                : "Check back later for opportunities"}
+            </p>
           </div>
         )}
       </CardContent>

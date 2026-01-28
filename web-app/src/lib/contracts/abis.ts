@@ -21,8 +21,11 @@ export const ABIS = {
     "function getTask(uint256 taskId) external view returns (Task)",
     "function getTaskCount() external view returns (uint256)",
     "function latestRiskScore() external view returns (RiskScore)",
+    "function getEmergency(uint256 emergencyId) external view returns (EmergencyEvent)",
     "function emergencies(uint256 id) external view returns (EmergencyEvent)",
     "function emergencyCount() external view returns (uint256)",
+    "function totalFeesCollected() external view returns (uint256)",
+    "function protocolFeeBps() external view returns (uint256)",
     // Campaign functions
     "function getCampaign(uint256 campaignId) external view returns (Campaign)",
     "function getCampaignCount() external view returns (uint256)",
@@ -33,6 +36,8 @@ export const ABIS = {
     "function closeCampaign(uint256 campaignId) external",
     // Emergency declaration (DAO_ROLE) - enables task creation
     "function declareEmergencyByDAO(bytes32 disasterType, bytes32 geoHash, string evidence) external",
+    "function settleEmergency(uint256 emergencyId) external",
+    "function resetToIdle() external",
     // Task admin functions (DAO_ROLE)
     "function createTask(string description, uint256 reward, bytes32 geoHash) external returns (uint256)",
     "function verifyAndPay(uint256 taskId) external",
@@ -54,15 +59,15 @@ export const ABIS = {
     "event CampaignClosed(uint256 indexed campaignId, uint256 totalRaised, uint8 reason)",
   ]),
   ImpactNFT: parseAbi([
-    "struct ImpactProfile { uint256 reputation; uint8 tier; uint256 tasksCompleted; uint256 totalRewards; uint256 lastActive; }",
+    "struct Impact { uint256 tasksCompleted; uint256 reputation; uint256 totalRewards; uint256 firstTaskAt; uint256 lastTaskAt; uint8 tier; string metadataCID; }",
     "struct ProofRecord { bytes32 proofHash; uint256 taskId; uint256 timestamp; bool verified; }",
     "function balanceOf(address owner) view returns (uint256)",
     "function tokenURI(uint256 tokenId) view returns (string)",
-    "function getImpact(address volunteer) external view returns (ImpactProfile)",
-    "function impacts(address volunteer) external view returns (uint256 reputation, uint8 tier, uint256 tasksCompleted, uint256 totalRewards, uint256 lastActive)",
+    "function getImpact(address volunteer) external view returns (Impact)",
+    "function impacts(address volunteer) external view returns (uint256 tasksCompleted, uint256 reputation, uint256 totalRewards, uint256 firstTaskAt, uint256 lastTaskAt, uint8 tier, string metadataCID)",
     "function getTierName(uint8 tier) external pure returns (string)",
     "function volunteerToTokenId(address volunteer) external view returns (uint256)",
-    "event ImpactRecorded(address indexed volunteer, uint256 indexed tokenId, uint256 tasksCompleted, uint256 reputation, uint8 tier)",
+    "event ImpactRecorded(address indexed volunteer, uint256 tokenId, uint256 tasksCompleted, uint256 reputation, uint8 tier)",
   ]),
   DRCPGovernor: parseAbi([
     // Read functions
@@ -133,4 +138,3 @@ export const ABIS = {
     "function yieldRatio() external view returns (uint256)",
   ]),
 } as const;
-

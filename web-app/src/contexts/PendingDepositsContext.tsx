@@ -89,8 +89,12 @@ export function PendingDepositsProvider({ children }: { children: ReactNode }) {
 
   const addPendingDeposit = useCallback(
     (deposit: Omit<PendingDeposit, "id" | "timestamp">) => {
+      // FIX: Store the GROSS amount (don't deduct fee) to match Subgraph V4 behavior
+      // The dashboard now displays Gross Amount for confirmed txs, so pending must match.
+      
       const newDeposit: PendingDeposit = {
         ...deposit,
+        // deposit.amount and deposit.amountRaw are already Gross (passed from DonationModal)
         id: `pending-${deposit.txHash}`,
         timestamp: Date.now(),
       };

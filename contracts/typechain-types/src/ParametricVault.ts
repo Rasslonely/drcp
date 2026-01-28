@@ -170,6 +170,7 @@ export interface ParametricVaultInterface extends Interface {
       | "getVaultBalance"
       | "grantRole"
       | "hasRole"
+      | "impactNFT"
       | "latestRiskScore"
       | "pause"
       | "paused"
@@ -368,6 +369,7 @@ export interface ParametricVaultInterface extends Interface {
     functionFragment: "hasRole",
     values: [BytesLike, AddressLike]
   ): string;
+  encodeFunctionData(functionFragment: "impactNFT", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "latestRiskScore",
     values?: undefined
@@ -573,6 +575,7 @@ export interface ParametricVaultInterface extends Interface {
   ): Result;
   decodeFunctionResult(functionFragment: "grantRole", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "hasRole", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "impactNFT", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "latestRiskScore",
     data: BytesLike
@@ -1290,6 +1293,8 @@ export interface ParametricVault extends BaseContract {
     "view"
   >;
 
+  impactNFT: TypedContractMethod<[], [string], "view">;
+
   latestRiskScore: TypedContractMethod<
     [],
     [
@@ -1644,6 +1649,9 @@ export interface ParametricVault extends BaseContract {
     [boolean],
     "view"
   >;
+  getFunction(
+    nameOrSignature: "impactNFT"
+  ): TypedContractMethod<[], [string], "view">;
   getFunction(
     nameOrSignature: "latestRiskScore"
   ): TypedContractMethod<

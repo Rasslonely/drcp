@@ -63,7 +63,7 @@ export interface TransactionEvent {
 // Event ABIs
 const DEPOSITED_EVENT = parseAbiItem("event Deposited(address indexed donor, uint256 amount)");
 const TASK_VERIFIED_EVENT = parseAbiItem("event TaskVerified(uint256 indexed taskId, address indexed volunteer, uint256 reward)");
-const IMPACT_RECORDED_EVENT = parseAbiItem("event ImpactRecorded(address indexed volunteer, uint256 indexed tokenId, uint256 tasksCompleted, uint256 reputation, uint8 tier)");
+const IMPACT_RECORDED_EVENT = parseAbiItem("event ImpactRecorded(address indexed volunteer, uint256 tokenId, uint256 tasksCompleted, uint256 reputation, uint8 tier)");
 
 // Helper to format address for display
 function formatAddress(address: string): string {
@@ -332,9 +332,16 @@ export function useImpactRecordedEvents(blockRange: bigint = BigInt(50000)) {
  * PERFORMANCE FIX: Removed RPC fallback that was running in parallel
  * causing 2+ minute loading times. Subgraph is the single source of truth.
  */
-export function useAllTransactions(blockRange: bigint = BigInt(50000)) {
-  // SUBGRAPH ONLY - No more RPC fallback running in parallel!
-  const { activities, isLoading } = useActivitiesGraph(undefined, 200);
+export function useAllTransactions(address?: string, limit = 50, type?: string) {
+  // SUBGRAPH ONLY - No more RPC fallback!
+  // If we have a specific type, we can be more specific with the address filter
+  // logic to avoid complex OR queries that might not be supported on all nodes
+  const { activities, isLoading } = useActivitiesGraph({ 
+    volunteer: type === 'PAYOUT' ? address : undefined,
+    donor: (type === 'DEPOSIT' || type === 'CAMPAIGN_DEPOSIT') ? address : undefined,
+    account: !type ? address : undefined, // Only use general account filter if type is not specified
+    type: type
+  }, limit);
   
   // Map activities to UI events
   const transactions: TransactionEvent[] = (activities || []).map(a => {

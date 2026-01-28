@@ -108,17 +108,17 @@ export function useTask(taskId: number | undefined) {
   const taskDisplay: TaskDisplay | undefined = task ? {
     ...task,
     rewardFormatted: `$${Number(formatUnits(task.reward, 6)).toLocaleString("en-US", { minimumFractionDigits: 2 })}`,
-    statusLabel: TASK_STATUS_CONFIG[task.status]?.label || "Unknown",
-    statusColor: TASK_STATUS_CONFIG[task.status]?.color || "gray",
-    statusIcon: TASK_STATUS_CONFIG[task.status]?.icon || "❓",
+    statusLabel: TASK_STATUS_CONFIG[Number(task.status) as TaskStatus]?.label || "Unknown",
+    statusColor: TASK_STATUS_CONFIG[Number(task.status) as TaskStatus]?.color || "gray",
+    statusIcon: TASK_STATUS_CONFIG[Number(task.status) as TaskStatus]?.icon || "❓",
     volunteerFormatted: task.volunteer === "0x0000000000000000000000000000000000000000" 
       ? "Unassigned" 
       : `${task.volunteer.slice(0, 6)}...${task.volunteer.slice(-4)}`,
     createdAtDate: new Date(Number(task.createdAt) * 1000),
-    isOpen: task.status === TaskStatus.OPEN,
-    isClaimed: task.status === TaskStatus.CLAIMED,
-    isPending: task.status === TaskStatus.PROOF_SUBMITTED,
-    isCompleted: task.status === TaskStatus.PAID || task.status === TaskStatus.VERIFIED,
+    isOpen: Number(task.status) === TaskStatus.OPEN,
+    isClaimed: Number(task.status) === TaskStatus.CLAIMED,
+    isPending: Number(task.status) === TaskStatus.PROOF_SUBMITTED,
+    isCompleted: Number(task.status) === TaskStatus.PAID || Number(task.status) === TaskStatus.VERIFIED,
   } : undefined;
 
   return {
@@ -143,7 +143,9 @@ export function useAllTasks() {
   const [isError, setIsError] = useState(false);
 
   const fetchAllTasks = useCallback(async () => {
+    console.log(`[useAllTasks] Fetching for taskCount: ${taskCount}, address: ${deployment.VAULT_ADDRESS}`);
     if (!publicClient || taskCount === 0) {
+      if (taskCount === 0) console.log("[useAllTasks] taskCount is 0, skipping fetch.");
       setTasks([]);
       setIsLoading(false);
       return;
@@ -166,24 +168,37 @@ export function useAllTasks() {
       }
 
       const results = await Promise.all(taskPromises);
+      console.log(`[useAllTasks] Raw results for ${results.length} tasks:`, results);
       
       const parsedTasks: TaskDisplay[] = results
-        .filter((t): t is Task => t !== null && (t as Task).id > BigInt(0))
-        .map((task) => ({
-          ...task,
-          rewardFormatted: `$${Number(formatUnits(task.reward, 6)).toLocaleString("en-US", { minimumFractionDigits: 2 })}`,
-          statusLabel: TASK_STATUS_CONFIG[task.status]?.label || "Unknown",
-          statusColor: TASK_STATUS_CONFIG[task.status]?.color || "gray",
-          statusIcon: TASK_STATUS_CONFIG[task.status]?.icon || "❓",
-          volunteerFormatted: task.volunteer === "0x0000000000000000000000000000000000000000" 
-            ? "Unassigned" 
-            : `${task.volunteer.slice(0, 6)}...${task.volunteer.slice(-4)}`,
-          createdAtDate: new Date(Number(task.createdAt) * 1000),
-          isOpen: task.status === TaskStatus.OPEN,
-          isClaimed: task.status === TaskStatus.CLAIMED,
-          isPending: task.status === TaskStatus.PROOF_SUBMITTED,
-          isCompleted: task.status === TaskStatus.PAID || task.status === TaskStatus.VERIFIED,
-        }));
+        .filter((t): t is Task => {
+          const isValid = t !== null && (t as Task).id > BigInt(0);
+          if (!isValid) console.warn("[useAllTasks] Invalid task found in results:", t);
+          return isValid;
+        })
+        .map((task) => {
+          console.log(`[useAllTasks] Parsing task ${task.id}:`, {
+            status: task.status,
+            statusNum: Number(task.status),
+            isOpen: Number(task.status) === TaskStatus.OPEN
+          });
+          
+          return {
+            ...task,
+            rewardFormatted: `$${Number(formatUnits(task.reward, 6)).toLocaleString("en-US", { minimumFractionDigits: 2 })}`,
+            statusLabel: TASK_STATUS_CONFIG[Number(task.status) as TaskStatus]?.label || "Unknown",
+            statusColor: TASK_STATUS_CONFIG[Number(task.status) as TaskStatus]?.color || "gray",
+            statusIcon: TASK_STATUS_CONFIG[Number(task.status) as TaskStatus]?.icon || "❓",
+            volunteerFormatted: task.volunteer === "0x0000000000000000000000000000000000000000" 
+              ? "Unassigned" 
+              : `${task.volunteer.slice(0, 6)}...${task.volunteer.slice(-4)}`,
+            createdAtDate: new Date(Number(task.createdAt) * 1000),
+            isOpen: Number(task.status) === TaskStatus.OPEN,
+            isClaimed: Number(task.status) === TaskStatus.CLAIMED,
+            isPending: Number(task.status) === TaskStatus.PROOF_SUBMITTED,
+            isCompleted: Number(task.status) === TaskStatus.PAID || Number(task.status) === TaskStatus.VERIFIED,
+          };
+        });
 
       setTasks(parsedTasks.sort((a, b) => Number(b.id) - Number(a.id))); // Newest first
     } catch (error) {
@@ -227,6 +242,7 @@ export function useMyTasks(volunteerAddress: `0x${string}` | undefined) {
     myTasks,
     claimedTasks: myTasks.filter(t => t.isClaimed),
     pendingTasks: myTasks.filter(t => t.isPending),
+    activeTasks: myTasks.filter(t => t.isClaimed || t.isPending),
     completedTasks: myTasks.filter(t => t.isCompleted),
     isLoading,
     isError,
